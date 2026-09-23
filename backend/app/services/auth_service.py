@@ -36,6 +36,15 @@ def create_access_token(username: str, user_id: int, user_role: str, expired_del
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
+def apply_bootstrap_admin(user_model, db):
+    """Promote accounts listed in ADMIN_EMAILS (settings.admin_emails)."""
+    if (user_model.email or "").lower() in settings.admin_emails and user_model.role != "admin":
+        user_model.role = "admin"
+        db.commit()
+        db.refresh(user_model)
+    return user_model
+
+
 def Authentication_user(login_identifier: str, password: str, db):
     """Authenticate user by email OR username."""
     # Try email first, then username
@@ -62,7 +71,7 @@ def Authentication_user(login_identifier: str, password: str, db):
             detail="Your account has been banned. Contact support for assistance."
         )
 
-    return user
+    return apply_bootstrap_admin(user, db)
 
 
 def _generate_unique_username(seed: str, db) -> str:
@@ -135,7 +144,7 @@ def authenticate_google_user(google_id_token: str, db):
         existing_user.is_verified = True
         db.commit()
         db.refresh(existing_user)
-        return existing_user
+        return apply_bootstrap_admin(existing_user, db)
 
     username_seed = token_data.get("name") or email.split("@")[0]
     username = _generate_unique_username(username_seed, db)
@@ -150,7 +159,7 @@ def authenticate_google_user(google_id_token: str, db):
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    return apply_bootstrap_admin(user, db)
 
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency):
@@ -197,6 +206,7 @@ def create_user(user: CreateUser, db):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    apply_bootstrap_admin(new_user, db)
     return {"message": "Account created successfully", "user_id": new_user.id}
 
 

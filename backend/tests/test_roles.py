@@ -67,3 +67,16 @@ def test_organizer_request_notifies_admins_until_resolved(db_session):
 def test_google_config_serves_backend_client_id():
     assert settings.google_client_id.endswith(".apps.googleusercontent.com")
     assert auth_routes.google_config() == {"client_id": settings.google_client_id}
+
+
+def test_admin_emails_bootstrap_the_first_admin(db_session, monkeypatch):
+    import dataclasses
+    from app.services import auth_service
+    monkeypatch.setattr(auth_service, "settings",
+                        dataclasses.replace(auth_service.settings, admin_emails=frozenset({"owner@example.com"})))
+
+    owner_id = create_user(CreateUser(user_name="owner", email="Owner@example.com", password="secret123"), db_session)["user_id"]
+    other_id = create_user(CreateUser(user_name="other", email="other@example.com", password="secret123"), db_session)["user_id"]
+
+    assert db_session.get(User, owner_id).role == "admin"
+    assert db_session.get(User, other_id).role == "attendee"

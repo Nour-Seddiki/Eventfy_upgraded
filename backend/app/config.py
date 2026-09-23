@@ -40,6 +40,7 @@ class Settings:
     frontend_url: str
     backend_url: str | None
     resend_api_key: str | None
+    admin_emails: frozenset
 
 
 settings = Settings(
@@ -64,4 +65,7 @@ settings = Settings(
     frontend_url=os.getenv("FRONTEND_URL", "http://localhost:8080"),
     backend_url=os.getenv("BACKEND_URL", "").strip() or None,
     resend_api_key=os.getenv("RESEND_API_KEY", "").strip() or None,
+    # Accounts with these emails become admins when they sign up or sign in.
+    # How a fresh deployment gets its first admin (signup never grants a role).
+    admin_emails=frozenset(e.strip().lower() for e in os.getenv("ADMIN_EMAILS", "").split(",") if e.strip()),
 )

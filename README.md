@@ -171,7 +171,9 @@ The live deployment runs on free tiers:
 
 **API on Render:** web service from this repo, root directory `backend`, build
 `pip install -r requirements.txt`, start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
-It redeploys on every push that changes `backend/`. Environment: the `DB_*` values of the
+Auto-deploy is on for `main`, but Render only hears about pushes when its GitHub app can see this
+repo. Until it is installed on `Eventfy_upgraded` (Render dashboard → Account settings → GitHub),
+deploy each push with **Manual Deploy → Deploy latest commit**. Environment: the `DB_*` values of the
 Render database (internal hostname, port 5432), a generated `SECRET_KEY`, `PYTHON_VERSION=3.11.9`,
 `FRONTEND_URL=https://eventfy-upgraded.netlify.app`, `BACKEND_URL` (its own URL) and `ADMIN_EMAILS`.
 Tables are created on first start.

@@ -23,6 +23,8 @@ export const state = {
   palette: false, pq: '', notifOpen: false, menuOpen: false,
   modal: null, qrTicketId: null, articleId: null, confirm: null, toast: null,
   ticketTab: 'up', newsTab: 'All', pfTab: 'info',
+  // Messages
+  conversations: [], convLoaded: false, chatUnread: 0, thread: null, compose: null,
 };
 
 const listeners = new Set();
@@ -36,6 +38,8 @@ export function useStore() {
   useEffect(() => {
     const l = () => force(n => n + 1);
     listeners.add(l);
+    // Data requested in boot() may have arrived before this effect subscribed
+    l();
     return () => listeners.delete(l);
   }, []);
   return state;
@@ -51,7 +55,7 @@ export function flash(msg) {
 // ─────────────────────────────────────────────
 //  Router (hash based: #/discover, #/event/3 …)
 // ─────────────────────────────────────────────
-const PRIVATE = new Set(['tickets', 'saved', 'profile', 'checkout', 'payment']);
+const PRIVATE = new Set(['tickets', 'saved', 'profile', 'checkout', 'payment', 'messages']);
 
 function parseHash() {
   const [name = 'discover', ...rest] = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
@@ -193,6 +197,7 @@ async function afterSignIn(accessToken, greeting) {
   token.set(accessToken);
   setState({ authed: true });
   await loadMe();
+  loadConversations();
   const target = returnTo || '#/discover';
   returnTo = null;
   history.replaceState(null, '', target);
@@ -240,6 +245,7 @@ export function signOut(expired = false) {
   setState({
     authed: false, profile: null, tickets: [], saved: [], registrations: [], notifications: [], unread: 0,
     myRatings: {}, dataLoaded: false, menuOpen: false, notifOpen: false, modal: null,
+    conversations: [], convLoaded: false, chatUnread: 0, thread: null, compose: null,
   });
   navigate('/discover', { replace: true });
   flash(expired ? 'Your session expired. Sign in again.' : 'You have signed out');
@@ -327,6 +333,81 @@ export async function rateEvent(eventId, rating) {
   } catch (e) { flash(e.message); }
 }
 
+// ─────────────────────────────────────────────
+//  Messages
+// ─────────────────────────────────────────────
+export async function loadConversations() {
+  if (!state.authed) return;
+  try {
+    const conversations = await api('/chat/conversations');
+    setState({ conversations, convLoaded: true, chatUnread: conversations.filter(c => c.unread > 0).length });
+  } catch { setState({ convLoaded: true }); }
+}
+
+export async function openThread(id) {
+  try {
+    const thread = await api(`/chat/conversations/${id}`);
+    setState({ thread, conversations: state.conversations.map(c => (c.id === id ? { ...c, unread: 0 } : c)) });
+    setState({ chatUnread: state.conversations.filter(c => c.unread > 0).length });
+  } catch (e) {
+    setState({ thread: null });
+    flash(e.message);
+    navigate('/messages', { replace: true });
+  }
+}
+
+export async function sendMessage(id, body) {
+  const thread = await api(`/chat/conversations/${id}/messages`, { method: 'POST', json: { body } });
+  setState({ thread });
+  loadConversations();
+}
+
+/** Start (or continue) a thread, then open it in Messages. */
+async function startThread(path, json) {
+  const thread = await api(path, { method: 'POST', json });
+  setState({ thread, compose: null, modal: null });
+  await loadConversations();
+  navigate(`/messages/${thread.id}`);
+}
+export const contactSupport = (topic, body) => startThread('/chat/support', { topic, body });
+export const messageOrganizer = (eventId, body) => startThread(`/chat/events/${eventId}`, { body });
+
+export async function announce(eventId, body) {
+  const res = await api(`/chat/events/${eventId}/announce`, { method: 'POST', json: { body } });
+  setState({ compose: null });
+  loadConversations();
+  flash(`Announcement sent to ${res.sent_to} ${res.sent_to === 1 ? 'attendee' : 'attendees'}`);
+}
+
+export async function closeThread(id) {
+  const thread = await api(`/chat/conversations/${id}/close`, { method: 'POST' });
+  setState({ thread });
+  loadConversations();
+  flash('Marked as resolved');
+}
+
+export async function promoteFromThread(userId, threadId) {
+  await api(`/admin/change_role/${userId}`, { method: 'PUT', json: { role: 'organizer' } });
+  await openThread(threadId);
+  loadConversations();
+  flash('Promoted to organizer');
+}
+
+/** Keep unread badges and an open thread fresh without websockets. */
+async function poll() {
+  if (!state.authed || document.hidden) return;
+  try {
+    const { unread } = await api('/chat/unread-count');
+    if (unread !== state.chatUnread || state.route.name === 'messages') await loadConversations();
+    if (state.route.name === 'messages' && state.thread && !state.compose) {
+      const fresh = await api(`/chat/conversations/${state.thread.id}`);
+      if (fresh.messages.length !== state.thread.messages.length || fresh.status !== state.thread.status) setState({ thread: fresh });
+    }
+    const notif = await api('/notifications?limit=20');
+    if (notif.unread_count !== state.unread) setState({ notifications: notif.notifications || [], unread: notif.unread_count || 0 });
+  } catch { /* offline: try again next tick */ }
+}
+
 export async function markAllRead() {
   setState({ unread: 0, notifications: state.notifications.map(n => ({ ...n, read: true })) });
   await api('/notifications/mark-all-as-read', { method: 'PUT' }).catch(() => {});
@@ -358,6 +439,7 @@ export async function changePassword(current, next) {
 export async function requestOrganizer() {
   await api('/users/request_organizer', { method: 'POST' });
   setState({ profile: { ...state.profile, organizer_request_pending: true } });
+  loadConversations();
 }
 
 export async function deleteAccount() {
@@ -382,5 +464,6 @@ export function boot() {
   window.addEventListener('resize', () => setState({ w: window.innerWidth }));
   applyRoute();
   loadEvents();
-  loadMe();
+  loadMe().then(loadConversations);
+  setInterval(poll, 20000);
 }

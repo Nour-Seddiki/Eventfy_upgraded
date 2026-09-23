@@ -44,6 +44,12 @@ export function Header() {
       </button>
       <div class="head-actions">
         ${authed && html`
+          <button class="icon-btn" aria-label=${`Messages${state.chatUnread ? `, ${state.chatUnread} unread` : ''}`}
+            aria-current=${route.name === 'messages' ? 'page' : undefined} onClick=${() => navigate('/messages')}>
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 12a8 8 0 01-11.6 7.1L4 20.5l1.4-4.7A8 8 0 1121 12z" stroke-linejoin="round"></path></svg>
+            ${state.chatUnread > 0 && html`<span class="count-dot">${state.chatUnread}</span>`}
+          </button>
           <button class="icon-btn" aria-label=${`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded=${notifOpen}
             onClick=${() => setState({ notifOpen: !notifOpen, menuOpen: false })}>
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -64,7 +70,7 @@ export function Header() {
 function AccountMenu() {
   const p = state.profile || {};
   const consoleLink = CONSOLE[role()];
-  const items = [['profile', 'Profile & settings'], ['tickets', 'My tickets'], ['saved', 'Saved events']];
+  const items = [['profile', 'Profile & settings'], ['messages', 'Messages'], ['tickets', 'My tickets'], ['saved', 'Saved events']];
   return html`<div class="popover menu" role="menu">
     <div class="menu-head">
       <${Avatar} profile=${p} />

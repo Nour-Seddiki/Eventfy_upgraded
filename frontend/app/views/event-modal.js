@@ -2,6 +2,7 @@ import { html, useEffect } from '../lib.js';
 import { api } from '../api.js';
 import { state, setState, getEvent, navigate, getFreeTicket, applyToEvent, flash } from '../store.js';
 import { Cover, QrImage, Field } from '../ui.js';
+import { messageOrganizerSheet } from './messages.js';
 import { downloadIcs, ticketCode } from '../util.js';
 
 const patch = p => setState({ modal: { ...state.modal, ...p } });
@@ -54,6 +55,9 @@ function Step1({ ev }) {
     <button class="btn btn-primary btn-lg cta-split" disabled=${act.disabled} onClick=${act.go}>
       <span>${act.label}</span>${act.price && html`<span>${act.price}</span>`}
     </button>
+    ${state.profile && state.profile.id !== ev.organizer_id && html`
+      <button class="link-btn" style=${{ alignSelf: 'center', fontSize: '14px' }} onClick=${() => messageOrganizerSheet(ev.id)}>
+        Questions? Message the organizer</button>`}
   </div>`;
 }
 

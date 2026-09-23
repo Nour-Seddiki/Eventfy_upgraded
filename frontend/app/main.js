@@ -10,10 +10,11 @@ import { Profile } from './views/profile.js';
 import { Auth } from './views/auth.js';
 import { Checkout, PaymentResult } from './views/checkout.js';
 import { Palette } from './views/palette.js';
+import { Messages, ComposeSheet } from './views/messages.js';
 
 const PAGES = {
   discover: Discover, tickets: Tickets, saved: Saved, news: News, profile: Profile,
-  checkout: Checkout, payment: PaymentResult,
+  checkout: Checkout, payment: PaymentResult, messages: Messages,
 };
 
 function useShortcuts() {
@@ -26,7 +27,7 @@ function useShortcuts() {
         setState({ palette: true, pq: '', notifOpen: false, menuOpen: false });
       }
       if (e.key === 'Escape') {
-        setState({ palette: false, modal: null, notifOpen: false, qrTicketId: null, articleId: null, menuOpen: false, confirm: null });
+        setState({ palette: false, modal: null, notifOpen: false, qrTicketId: null, articleId: null, menuOpen: false, confirm: null, compose: null });
       }
     };
     const onClick = e => {
@@ -42,7 +43,7 @@ function App() {
   useStore();
   useShortcuts();
   const name = state.route.name;
-  const overlay = !!(state.modal || state.palette || state.qrTicketId || state.articleId || state.confirm);
+  const overlay = !!(state.modal || state.palette || state.qrTicketId || state.articleId || state.confirm || state.compose);
   useEffect(() => { document.body.style.overflow = overlay ? 'hidden' : ''; }, [overlay]);
 
   if (name === 'signin' || name === 'signup') {
@@ -60,6 +61,7 @@ function App() {
     <${ArticleModal} />
     <${Palette} />
     <${ConfirmDialog} />
+    <${ComposeSheet} />
     <${Toast} />
   </div>`;
 }

@@ -17,6 +17,7 @@
     { href: '../org-dashboard/index.html', label: 'Dashboard', match: '/org-dashboard/', roles: ['organizer'] },
     { href: '../new Event/index.html', label: 'New event', match: '/new Event/', roles: ['organizer'] },
     { href: '../Admin/admin.html', label: 'Admin panel', match: '/Admin/', roles: ['admin'] },
+    { href: '../index.html#/messages', label: 'Messages', match: '#/messages', roles: ['organizer', 'admin'] },
   ].filter(function (l) { return l.roles.indexOf(role) !== -1; });
 
   var mark = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +

@@ -74,7 +74,9 @@ function InfoTab() {
         <div style=${{ flex: 1, minWidth: '220px' }}><h2>Host your own events</h2>
           <p class="desc">Organizer accounts can publish events, sell tickets and scan QR codes at the door. An admin reviews every request.</p></div>
         ${r === 'attendee' && !p.organizer_request_pending && html`<button class="btn btn-primary" onClick=${request}>Request organizer access</button>`}
-        ${r === 'attendee' && p.organizer_request_pending && html`<span style=${{ padding: '9px 14px', borderRadius: '99px', background: '#ffedd5', color: '#c2410c', fontSize: '13px', fontWeight: 800 }}>Pending admin review</span>`}
+        ${r === 'attendee' && p.organizer_request_pending && html`<div style=${{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style=${{ padding: '9px 14px', borderRadius: '99px', background: '#ffedd5', color: '#c2410c', fontSize: '13px', fontWeight: 800 }}>Pending admin review</span>
+          <a class="btn" href="#/messages">View conversation</a></div>`}
         ${CONSOLE[r] && html`<a class="btn btn-dark" href=${CONSOLE[r].href}>Open ${r} console</a>`}
       </div>
     </div>`;

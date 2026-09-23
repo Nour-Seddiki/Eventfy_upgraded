@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Path, Body
 from starlette import status
 
+from pydantic import BaseModel, Field
+
 from app.db.session import db_dependency
+from app.services import account_cleanup
 from app.services.admin_services import Admin
 from app.services.auth_service import user_dependency
 
@@ -60,6 +63,22 @@ def restrict_user(user: user_dependency, db: db_dependency, user_id: int = Path(
 @router.put("/unrestrict_user/{user_id}", status_code=status.HTTP_202_ACCEPTED)
 def unrestrict_user(user: user_dependency, db: db_dependency, user_id: int = Path(gt=0)):
     return Admin().unrestrict_user(user, db, user_id)
+
+
+class PurgeUsers(BaseModel):
+    user_ids: list[int] = Field(min_length=1, max_length=500)
+
+
+@router.get("/account_review", status_code=status.HTTP_200_OK)
+def account_review(user: user_dependency, db: db_dependency):
+    """Every non-admin account, with the reasons it looks fake (bad email, deactivated)."""
+    return account_cleanup.review_accounts(user, db)
+
+
+@router.post("/purge_users", status_code=status.HTTP_200_OK)
+def purge_users(user: user_dependency, db: db_dependency, body: PurgeUsers):
+    """Permanently delete accounts and everything that belongs to them."""
+    return account_cleanup.purge_users(user, db, body.user_ids)
 
 
 @router.put("/change_role/{user_id}", status_code=status.HTTP_202_ACCEPTED)

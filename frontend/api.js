@@ -99,6 +99,7 @@ function apiErrorMessage(body, fallback = 'Something went wrong. Please try agai
   const d = body && body.detail;
   if (typeof d === 'string' && d.trim()) return d;
   if (Array.isArray(d) && d.length) return d.map(describeValidationError).join(' · ');
+  if (d && typeof d.message === 'string') return d.message;  // {field, message}
   return fallback;
 }
 

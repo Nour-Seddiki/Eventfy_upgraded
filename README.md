@@ -21,7 +21,7 @@ admin-approved organizers and a round of security fixes. See [What changed](#wha
 - My tickets: next event with its QR code, add to calendar (.ics), directions, cancel free tickets,
   rate events you attended
 - Saved events, in-app notifications, profile with avatar, password change and account deletion
-- Sign in with email or Google
+- Sign in with email or Google; signup only accepts real email addresses (see [Real accounts](#real-accounts))
 
 **Organizers**
 - Create and edit events (cover image, schedule, capacity, price, location pinned on a map)
@@ -31,6 +31,7 @@ admin-approved organizers and a round of security fixes. See [What changed](#wha
 **Admins**
 - Dashboard with platform analytics
 - Manage users (restrict, ban, delete) and promote attendees who request organizer access
+- **Clean up accounts**: flag fake or deactivated accounts and remove them for good
 - Moderate events, payments and reviews (admins don't create events; organizers do)
 
 **Messaging** (`/chat` API)
@@ -45,6 +46,24 @@ Every account starts as an **attendee**. An attendee who wants to publish events
 promotes them from the admin panel (**Promote to Organizer**). The user is notified when their role
 changes. Nobody can pick or change their own role.
 
+## Real accounts
+
+Eventfy sends no email, so it checks addresses instead:
+
+- **At signup** (and when an email is changed) the API rejects addresses that can't be real:
+  placeholder domains (`example.com`, `test.com`, `demo.com`, …), throwaway inboxes (`yopmail.com`,
+  `mailinator.com`, …), typos of the big providers (`gmial.com` → *Did you mean …@gmail.com?*) and
+  domains with no mail server (a DNS lookup). The rules are in `backend/app/utils/email_rules.py`.
+- Emails are stored lowercase and are unique whatever the capitalization, so `Nour@Gmail.com` and
+  `nour@gmail.com` are the same account for signup and sign-in.
+- **Existing accounts:** in the admin panel, **Users → Clean up accounts** lists every account whose
+  email fails those checks, and every deactivated account, already ticked. Tick **Show all accounts**
+  to pick others too, e.g. test accounts that used a real-looking address. Removing an account deletes
+  it with its tickets (seats go back to the event), events, registrations, messages and
+  notifications. Admins, your own account and accounts with paid payments are never removed.
+
+Only Google sign-in proves that an address belongs to the person using it.
+
 ## Tech stack
 
 | Layer | Technology |
@@ -53,7 +72,6 @@ changes. Nobody can pick or change their own role.
 | Database | PostgreSQL on Supabase; Supabase Storage for images |
 | Auth | JWT (python-jose, bcrypt), Google Identity Services |
 | Payments | [Chargily Pay](https://chargily.com) v2 (CIB, EDAHABIA, DZD) |
-| Email | SMTP or Resend |
 | Frontend | Eventfy v4: Preact + htm single-page app, no build step |
 | Maps | Leaflet + OpenStreetMap (no API key) |
 | Hosting | Render (API), Netlify (frontend) |
@@ -120,13 +138,13 @@ All settings live in `backend/.env` (see [`backend/.env.example`](backend/.env.e
 | `SECRET_KEY` | Signs login tokens. Use a long random value in production. |
 | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | PostgreSQL connection |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | Image uploads (event covers, avatars) |
-| `SMTP_*` or `RESEND_API_KEY` | Ticket emails |
 | `GOOGLE_CLIENT_ID` | Optional override of the Google OAuth client built into the app |
 | `CHARGILY_SECRET` | Chargily secret key. Without it, paid checkout is disabled. |
 | `CHARGILY_URL` | `https://pay.chargily.net/test/api/v2/` for test mode, `…/api/v2/` for live |
 | `BACKEND_URL` | Public API URL; Chargily sends webhooks to `BACKEND_URL/payment/webhook` |
 | `FRONTEND_URL` | Frontend origin(s), comma-separated; used for CORS and payment redirects |
 | `ADMIN_EMAILS` | Emails that become admins when they sign up or sign in (how a new deployment gets its first admin) |
+| `EMAIL_DOMAIN_CHECKS` | `true` (default) rejects placeholder, throwaway, mistyped and mail-less domains at signup; `false` checks syntax only |
 
 ## Payments
 
@@ -172,7 +190,8 @@ becomes admin and can then promote organizers.
   `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` to keep them in Supabase Storage.
 - Payments stay disabled until `CHARGILY_SECRET` is set (test key first). Set Chargily's webhook to
   `https://eventfy-upgraded-api.onrender.com/payment/webhook`, or rely on `BACKEND_URL`.
-- Ticket emails need `SMTP_*` or `RESEND_API_KEY`.
+- Eventfy sends no email: tickets, registration decisions and role changes arrive as in-app
+  notifications, and the QR ticket is always in *My tickets*.
 - Google sign-in: add the Netlify URL to the OAuth client's *Authorized JavaScript origins*.
 
 ## What changed in this upgrade
@@ -184,6 +203,7 @@ becomes admin and can then promote organizers.
 - Users can no longer make themselves admins through `PUT /users/update_me`
 - `POST /ticket/purchase_ticket` no longer hands out free tickets for paid or approval-only events
 - Removed a diagnostic endpoint that exposed SMTP settings
+- The admin user list no longer sends every account's password hash to the browser
 
 **Product**
 - Eventfy v4 frontend, built from the Claude Design prototype
@@ -192,6 +212,10 @@ becomes admin and can then promote organizers.
 - Signup no longer asks for a role; admins approve organizers
 - Google sign-in fixed (the API now always knows its OAuth client)
 - Maps moved from CARTO (now requires a key) to OpenStreetMap
+- Signup rejects fake, throwaway and mistyped emails; emails are case-insensitive
+- Admin **Clean up accounts** tool to remove fake accounts and everything attached to them
+- Email sending removed (it never worked on Render's free tier, which blocks SMTP); everything it
+  announced is an in-app notification
 
 **Fixes**
 - Recommendations endpoint crashed on a renamed column
@@ -202,7 +226,8 @@ becomes admin and can then promote organizers.
 
 - **News & highlights** shows placeholder stories from the design (`frontend/app/news.js`);
   there is no news API yet.
-- No self-service password reset yet.
+- No self-service password reset yet (it would need email).
+- Signup can't prove an email belongs to whoever typed it; only Google sign-in does.
 - Refunds are manual (see [Payments](#payments)).
 
 ## Credits

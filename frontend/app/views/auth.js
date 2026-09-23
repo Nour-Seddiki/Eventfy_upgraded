@@ -103,7 +103,7 @@ function SignUp() {
     setErr({}); setBusy(true);
     try { await signUp(name, email, pw); } catch (x) {
       setBusy(false);
-      if (/email/i.test(x.message)) setErr({ email: x.message }); else setErr({ pw: x.message });
+      if (x.field === 'email' || /email/i.test(x.message)) setErr({ email: x.message }); else setErr({ pw: x.message });
     }
   };
   return html`<div class="auth-form">

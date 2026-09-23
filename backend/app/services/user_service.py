@@ -7,7 +7,8 @@ from app.schemas.user import update_password, UpdateUser, UpdateProfile
 from app.models.user import User
 from app.models.notification import Notification
 from app.schemas.notification import CreateNotification, NotificationType
-from app.services.auth_service import verifying_password, hashing_password
+from app.services.auth_service import verifying_password, hashing_password, find_user_by_email
+from app.utils.email_rules import email_problem, normalize_email
 
 
 class userServices:
@@ -43,8 +44,18 @@ class userServices:
     def update_user(user, db, data: UpdateUser):
         user_model = userServices._get_active_user(user, db)
 
+        email = normalize_email(data.email)
+        if email != normalize_email(user_model.email):
+            problem = email_problem(email)
+            if problem:
+                raise HTTPException(status_code=422, detail={"field": "email", "message": problem})
+            if find_user_by_email(db, email) is not None:
+                raise HTTPException(status_code=409, detail={"field": "email", "message": "Another account already uses this email."})
+        if data.user_name != user_model.username and db.query(User).filter(User.username == data.user_name).first():
+            raise HTTPException(status_code=409, detail="Username already taken")
+
         user_model.username = data.user_name
-        user_model.email = data.email
+        user_model.email = email
 
         db.add(user_model)
         db.commit()

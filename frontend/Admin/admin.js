@@ -68,6 +68,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('eventStatusFilter').addEventListener('change', () => { eventPage = 1; renderEventsTable(); });
   document.getElementById('paymentStatusFilter').addEventListener('change', () => { paymentPage = 1; renderPaymentsTable(); });
 
+  /* ── ACCOUNT CLEANUP ── */
+  document.getElementById('cleanupBtn').addEventListener('click', openCleanup);
+
   /* ── DETAIL DRAWER ── */
   document.getElementById('detailCloseBtn').addEventListener('click', closeDetailDrawer);
   document.getElementById('detailOverlay').addEventListener('click', closeDetailDrawer);
@@ -867,6 +870,7 @@ async function handleChangeRole(userId, newRole, name) {
 ══════════════════════════════════════════ */
 
 function renderDetailDrawer(user) {
+  document.getElementById('detailDrawerTitle').textContent = 'User Details';
   const body = document.getElementById('detailDrawerBody');
   const name = user.full_name || user.username || 'Unknown';
   const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -970,6 +974,103 @@ function closeDetailDrawer() {
   document.getElementById('detailDrawer').classList.remove('open');
   document.getElementById('detailOverlay').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+
+/* ══════════════════════════════════════════
+   ACCOUNT CLEANUP
+   Flags accounts whose email can't be real (placeholder, disposable,
+   mistyped, no mail server) or that were deactivated, and removes the
+   ones you pick for good, with their tickets, events and messages.
+══════════════════════════════════════════ */
+
+let reviewRows = [];
+let reviewShowAll = false;
+const cleanupPicked = new Set();
+
+async function openCleanup() {
+  document.getElementById('detailDrawerTitle').textContent = 'Clean up accounts';
+  document.getElementById('detailDrawerBody').innerHTML =
+    '<div class="table-loading"><div class="table-spinner"></div>Checking every account’s email…</div>';
+  openDetailDrawer();
+  try {
+    const res = await apiFetch('/admin/account_review');
+    if (!res.ok) throw new Error(apiErrorMessage(await res.json().catch(() => ({})), 'Could not check the accounts.'));
+    reviewRows = await res.json();
+    cleanupPicked.clear();
+    reviewRows.filter(r => r.flagged && r.removable).forEach(r => cleanupPicked.add(r.id));
+    reviewShowAll = false;
+    renderCleanup();
+  } catch (err) {
+    document.getElementById('detailDrawerBody').innerHTML = `<div class="detail-empty">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderCleanup() {
+  const body = document.getElementById('detailDrawerBody');
+  const flagged = reviewRows.filter(r => r.flagged);
+  const rows = reviewShowAll ? reviewRows : flagged;
+  const total = reviewRows.length;
+  const intro = flagged.length
+    ? `<b>${flagged.length}</b> of ${total} account${total === 1 ? '' : 's'} ${flagged.length === 1 ? 'doesn’t' : 'don’t'} look real. Removing an account deletes it for good, with its tickets, events, registrations and messages.`
+    : total === 0 ? 'There are no accounts besides admins yet.'
+    : total === 1 ? 'The only account has a real-looking email.'
+    : `All ${total} accounts have real-looking emails.`;
+
+  body.innerHTML = `
+    <p class="cleanup-intro">${intro}</p>
+    <label class="cleanup-toggle"><input type="checkbox" id="cleanupShowAll" ${reviewShowAll ? 'checked' : ''}>
+      Show all accounts, to remove ones with real-looking emails too</label>
+    <div class="cleanup-list">${rows.map(r => {
+      const name = r.full_name || r.username || 'Unknown';
+      const activity = [r.tickets && `${r.tickets} ticket${r.tickets > 1 ? 's' : ''}`,
+                        r.events && `${r.events} event${r.events > 1 ? 's' : ''}`].filter(Boolean).join(' · ');
+      const reasons = r.reasons.length
+        ? r.reasons.map(x => `<span class="cleanup-reason">${escapeHtml(x)}</span>`).join('')
+        : '<span class="cleanup-ok">Email looks real</span>';
+      return `<label class="cleanup-row ${r.removable ? '' : 'is-locked'}">
+        <input type="checkbox" data-id="${r.id}" ${cleanupPicked.has(r.id) ? 'checked' : ''} ${r.removable ? '' : 'disabled'}>
+        <span class="cleanup-main">
+          <span class="cleanup-name">${escapeHtml(name)} <span class="badge badge--${escapeHtml(r.role)}">${capitalize(r.role)}</span></span>
+          <span class="cleanup-email">${escapeHtml(r.email || '(no email)')}</span>
+          ${reasons}
+          <span class="cleanup-meta">${r.removable ? escapeHtml(activity || 'No tickets or events') : 'Has paid payments, which must be kept'}</span>
+        </span>
+      </label>`;
+    }).join('') || '<div class="detail-empty">Nothing to clean up.</div>'}</div>
+    <div class="cleanup-actions">
+      <button class="btn-delete" id="cleanupRemove" ${cleanupPicked.size ? '' : 'disabled'}>
+        Remove ${cleanupPicked.size} account${cleanupPicked.size === 1 ? '' : 's'} permanently</button>
+    </div>`;
+
+  document.getElementById('cleanupShowAll').addEventListener('change', e => { reviewShowAll = e.target.checked; renderCleanup(); });
+  body.querySelectorAll('.cleanup-row input[data-id]').forEach(box => box.addEventListener('change', () => {
+    const id = Number(box.dataset.id);
+    if (box.checked) cleanupPicked.add(id); else cleanupPicked.delete(id);
+    renderCleanup();
+  }));
+  document.getElementById('cleanupRemove').addEventListener('click', confirmCleanup);
+}
+
+function confirmCleanup() {
+  const ids = [...cleanupPicked];
+  const n = ids.length;
+  showModal('Remove accounts permanently',
+    `Delete <strong>${n} account${n === 1 ? '' : 's'}</strong> and everything that belongs to them? This can’t be undone.`,
+    'danger',
+    async () => {
+      try {
+        const res = await apiFetch('/admin/purge_users', { method: 'POST', body: JSON.stringify({ user_ids: ids }) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(apiErrorMessage(data, 'Could not remove the accounts.'));
+        const removed = data.removed.length;
+        showToast(`Removed ${removed} account${removed === 1 ? '' : 's'}`, 'success');
+        data.skipped.forEach(x => showToast(`Kept ${escapeHtml(x.email || '#' + x.id)}: ${escapeHtml(x.reason)}`, 'info'));
+        await loadDashboard();
+        await openCleanup();
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+  );
 }
 
 

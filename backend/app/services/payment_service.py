@@ -1,7 +1,7 @@
 import json
 import logging
 
-from fastapi import HTTPException, BackgroundTasks
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.models.payment import Payment
 from app.models.event import Event
@@ -174,7 +174,7 @@ class PaymentService:
     #  FULFILMENT (shared by webhook and verify)
     # ─────────────────────────────────────────────
     @staticmethod
-    def _fulfill(db: Session, payment: Payment, background_tasks: BackgroundTasks) -> None:
+    def _fulfill(db: Session, payment: Payment) -> None:
         """Mark a payment paid and issue its ticket. Idempotent: webhooks can be
         delivered more than once, and the success page verifies as well."""
         if payment.status == PaymentStatus.paid and payment.ticket_id:
@@ -185,7 +185,7 @@ class PaymentService:
         user_dict = {"user_id": payment.user_id}
         try:
             ticket_result = TickectService().purchase_ticket(
-                user_dict, db, payment.event_id, background_tasks
+                user_dict, db, payment.event_id
             )
             payment.ticket_id = ticket_result["id"]
 
@@ -216,7 +216,7 @@ class PaymentService:
     #  CHARGILY WEBHOOK
     # ─────────────────────────────────────────────
     @staticmethod
-    def handle_webhook(db: Session, payload: str, signature: str, background_tasks: BackgroundTasks) -> dict:
+    def handle_webhook(db: Session, payload: str, signature: str) -> dict:
         """Verify and process a Chargily webhook (checkout.paid / failed / canceled / expired)."""
         _require_chargily()
 
@@ -239,7 +239,7 @@ class PaymentService:
         if event_type == "checkout.paid":
             if checkout_data.get("payment_method"):
                 payment.payment_method = checkout_data["payment_method"]
-            PaymentService._fulfill(db, payment, background_tasks)
+            PaymentService._fulfill(db, payment)
         elif payment.status == PaymentStatus.pending:
             new_status = {
                 "checkout.failed": PaymentStatus.failed,
@@ -256,7 +256,7 @@ class PaymentService:
     #  VERIFY (success page fallback for when the webhook can't reach us, e.g. localhost)
     # ─────────────────────────────────────────────
     @staticmethod
-    def verify_payment(user: dict, db: Session, payment_id: str, background_tasks: BackgroundTasks) -> dict:
+    def verify_payment(user: dict, db: Session, payment_id: str) -> dict:
         """Ask Chargily for the checkout's status and fulfill the order if it is paid."""
         _require_chargily()
 
@@ -292,7 +292,7 @@ class PaymentService:
 
         if checkout.get("payment_method"):
             payment.payment_method = checkout["payment_method"]
-        PaymentService._fulfill(db, payment, background_tasks)
+        PaymentService._fulfill(db, payment)
 
         return {
             "status": "fulfilled",

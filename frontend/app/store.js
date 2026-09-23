@@ -224,7 +224,10 @@ export async function signUp(fullName, email, password) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const userName = `${base}.${Math.floor(1000 + Math.random() * 9000)}`;
     try {
-      await api('/auth/sign_up', { method: 'POST', json: { user_name: userName, email: email.trim(), password }, auth: false });
+      await api('/auth/sign_up', {
+        method: 'POST', auth: false,
+        json: { user_name: userName, email: email.trim(), password, full_name: fullName.trim() },
+      });
       lastErr = null;
       break;
     } catch (e) {
@@ -235,8 +238,6 @@ export async function signUp(fullName, email, password) {
   if (lastErr) throw lastErr;
   const form = new URLSearchParams({ username: email.trim(), password });
   const data = await api('/auth/token', { method: 'POST', form, auth: false });
-  token.set(data.access_token);
-  await api('/users/update_profile', { method: 'PUT', json: { full_name: fullName.trim() } }).catch(() => {});
   await afterSignIn(data.access_token, 'Welcome to Eventfy');
 }
 

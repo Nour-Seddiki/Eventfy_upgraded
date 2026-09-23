@@ -1068,3 +1068,32 @@ a      { text-decoration: none; color: inherit }
   .modal-card { transition: none }
   .detail-drawer { transition: none }
 }
+
+
+/* ══ Account cleanup ══ */
+.btn-cleanup {
+  display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px;
+  border: 1px solid #fbcfe8; border-radius: 10px; background: #fdf2f8; color: #be185d;
+  font: 600 13px/1 inherit; cursor: pointer; white-space: nowrap;
+}
+.btn-cleanup svg { width: 16px; height: 16px }
+.btn-cleanup:hover { background: #fce7f3 }
+.cleanup-intro { font-size: 13px; color: var(--text-2); line-height: 1.6; margin: 0 0 12px }
+.cleanup-toggle { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-2); margin-bottom: 14px; cursor: pointer }
+.cleanup-list { display: flex; flex-direction: column; gap: 8px }
+.cleanup-row {
+  display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid #e2e8f0;
+  border-radius: 12px; cursor: pointer; background: #fff;
+}
+.cleanup-row:has(input:checked) { border-color: #f9a8d4; background: #fdf2f8 }
+.cleanup-row.is-locked { opacity: .6; cursor: default }
+.cleanup-row input { margin-top: 3px; width: 16px; height: 16px; flex-shrink: 0 }
+.cleanup-main { display: flex; flex-direction: column; gap: 4px; min-width: 0 }
+.cleanup-name { font-weight: 700; font-size: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap }
+.cleanup-email { font-size: 13px; color: var(--text-2); overflow-wrap: anywhere }
+.cleanup-reason { font-size: 12px; color: #be185d }
+.cleanup-ok { font-size: 12px; color: #15803d }
+.cleanup-meta { font-size: 12px; color: #64748b }
+.cleanup-actions { position: sticky; bottom: 0; padding: 14px 0 4px; background: linear-gradient(transparent, #fff 30%) }
+.cleanup-actions .btn-delete { width: 100%; height: 42px; justify-content: center }
+.cleanup-actions .btn-delete:disabled { opacity: .5; cursor: not-allowed; transform: none }

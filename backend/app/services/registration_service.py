@@ -69,103 +69,6 @@ class RegistrationService:
         if event.organizer_id != user_dict.get("user_id"):
             raise HTTPException(status_code=403, detail="Only the event organizer can perform this action")
 
-    # ─── Registration Emails ─────────────────────────────────
-
-    @staticmethod
-    def _send_registration_email(user_email: str, event_title: str, action: str):
-        """Send registration status email using SMTP/Resend.
-
-        ``action`` is one of: 'submitted', 'approved', 'rejected'.
-        """
-        def _send():
-            import smtplib
-            from email.mime.text import MIMEText
-            from email.mime.multipart import MIMEMultipart
-            from app.config import settings
-
-            subject_map = {
-                "submitted": f"📋 Registration Received — {event_title}",
-                "approved": f"🎉 Registration Approved — {event_title}",
-                "rejected": f"Registration Update — {event_title}",
-            }
-
-            body_map = {
-                "submitted": (
-                    f"Hello!\n\n"
-                    f"Your registration for '{event_title}' has been received and is being reviewed.\n"
-                    f"You'll receive another email once the organizer reviews your application.\n\n"
-                    f"Thank you for your interest!\n\n"
-                    f"— Eventfy Team"
-                ),
-                "approved": (
-                    f"Great news! 🎉\n\n"
-                    f"Your registration for '{event_title}' has been approved!\n"
-                    f"Your ticket is now available in your dashboard.\n\n"
-                    f"See you at the event!\n\n"
-                    f"— Eventfy Team"
-                ),
-                "rejected": (
-                    f"Hello,\n\n"
-                    f"Unfortunately, your registration for '{event_title}' was not approved.\n"
-                    f"If you have questions, please contact the event organizer.\n\n"
-                    f"— Eventfy Team"
-                ),
-            }
-
-            subject = subject_map.get(action, f"Registration Update — {event_title}")
-            body = body_map.get(action, f"Your registration status for '{event_title}' has been updated to: {action}.")
-
-            # Try Resend API first, then SMTP
-            if settings.resend_api_key:
-                try:
-                    import httpx
-                    payload = {
-                        "from": "Eventfy <onboarding@resend.dev>",
-                        "to": [user_email],
-                        "subject": subject,
-                        "text": body,
-                    }
-                    headers = {
-                        "Authorization": f"Bearer {settings.resend_api_key}",
-                        "Content-Type": "application/json",
-                    }
-                    resp = httpx.post("https://api.resend.com/emails", json=payload, headers=headers, timeout=15.0)
-                    if resp.status_code in (200, 201):
-                        logger.info("✅ Registration email (%s) sent via Resend to %s", action, user_email)
-                        return True
-                    else:
-                        logger.warning("Resend API error (%s): %s", resp.status_code, resp.text)
-                except Exception as exc:
-                    logger.warning("Resend failed, trying SMTP: %s", exc)
-
-            # SMTP fallback
-            if settings.smtp_user and settings.smtp_password:
-                try:
-                    msg = MIMEMultipart()
-                    msg["Subject"] = subject
-                    msg["From"] = settings.smtp_from or settings.smtp_user
-                    msg["To"] = user_email
-                    msg.attach(MIMEText(body, "plain"))
-
-                    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as server:
-                        if settings.smtp_use_tls:
-                            server.starttls()
-                        server.login(settings.smtp_user, settings.smtp_password)
-                        server.send_message(msg)
-
-                    logger.info("✅ Registration email (%s) sent via SMTP to %s", action, user_email)
-                    return True
-                except Exception as exc:
-                    logger.error("❌ SMTP email failed: %s", exc)
-                    return False
-
-            logger.warning("No email provider configured — skipping registration email")
-            return False
-
-        import threading
-        thread = threading.Thread(target=_send, daemon=True)
-        thread.start()
-
     # ═══════════════════════════════════════════════════════
     #  QUESTIONS  (Form Builder)
     # ═══════════════════════════════════════════════════════
@@ -399,8 +302,6 @@ class RegistrationService:
         except Exception as exc:
             logger.warning("Failed to create organizer notification: %s", exc)
 
-        # Email stub
-        RegistrationService._send_registration_email(user_model.email, event.title, "submitted")
 
         return RegistrationResponse(
             id=registration.id,
@@ -529,8 +430,6 @@ class RegistrationService:
         event = RegistrationService._get_event_or_404(db, registration.event_id)
         RegistrationService._require_organizer(user_dict, event)
 
-        attendee = db.query(User).filter(User.id == registration.user_id).first()
-
         now = datetime.now(timezone.utc)
         registration.reviewed_by = user_model.id
         registration.reviewed_at = now
@@ -564,8 +463,6 @@ class RegistrationService:
                 except Exception as exc:
                     logger.warning("Failed to create notification: %s", exc)
 
-                if attendee:
-                    RegistrationService._send_registration_email(attendee.email, event.title, "approved (payment required)")
 
                 return {
                     "message": "Registration approved — payment required",
@@ -608,8 +505,6 @@ class RegistrationService:
                 except Exception as exc:
                     logger.warning("Failed to create approval notification: %s", exc)
 
-                if attendee:
-                    RegistrationService._send_registration_email(attendee.email, event.title, "approved")
 
                 return {
                     "message": "Registration approved — ticket generated",
@@ -650,9 +545,6 @@ class RegistrationService:
             except Exception as exc:
                 logger.warning("Failed to create rejection notification: %s", exc)
 
-            # Email stub
-            if attendee:
-                RegistrationService._send_registration_email(attendee.email, event.title, "rejected")
 
             return {
                 "message": "Registration rejected",

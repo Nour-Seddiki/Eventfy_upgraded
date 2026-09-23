@@ -5,12 +5,15 @@ from jose import jwt, JWTError
 from datetime import datetime, timezone, timedelta
 import re
 import secrets
+from sqlalchemy import func
+
 from app.models.user import User
 from starlette import status
 from typing import Annotated
 from app.schemas.user import CreateUser
 from app.db.session import db_dependency
 from app.config import settings
+from app.utils.email_rules import email_problem, normalize_email
 
 
 SECRET_KEY = settings.secret_key
@@ -47,9 +50,9 @@ def apply_bootstrap_admin(user_model, db):
 
 def Authentication_user(login_identifier: str, password: str, db):
     """Authenticate user by email OR username."""
-    # Try email first, then username
+    # Try email first (any capitalization), then username
     user = db.query(User).filter(
-        User.email == login_identifier,
+        func.lower(User.email) == normalize_email(login_identifier),
         User.is_deleted.is_(False)
     ).first()
 
@@ -131,7 +134,8 @@ def authenticate_google_user(google_id_token: str, db):
             detail="Google account email is not verified",
         )
 
-    existing_user = db.query(User).filter(User.email == email).first()
+    email = normalize_email(email)
+    existing_user = find_user_by_email(db, email)
     if existing_user:
         if getattr(existing_user, 'is_banned', False):
             raise HTTPException(
@@ -184,24 +188,31 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)], db: db
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
 
+def find_user_by_email(db, email: str):
+    """Emails are unique regardless of capitalization."""
+    return db.query(User).filter(func.lower(User.email) == normalize_email(email)).first()
+
+
 def create_user(user: CreateUser, db):
     # Every account starts as an attendee; admins promote organizers
     # from the admin panel (PUT /admin/change_role/{user_id}).
-    # Check for existing user
-    existing = db.query(User).filter(
-        (User.email == user.email) | (User.username == user.user_name)
-    ).first()
-    if existing:
-        if existing.email == user.email:
-            raise HTTPException(status_code=409, detail="Email already registered")
+    email = normalize_email(user.email)
+    problem = email_problem(email)
+    if problem:
+        raise HTTPException(status_code=422, detail={"field": "email", "message": problem})
+    if find_user_by_email(db, email) is not None:
+        raise HTTPException(status_code=409, detail={
+            "field": "email", "message": "An account with this email already exists. Sign in instead."})
+    if db.query(User).filter(User.username == user.user_name).first() is not None:
         raise HTTPException(status_code=409, detail="Username already taken")
 
     new_user = User(
         username=user.user_name,
-        email=user.email,
+        email=email,
         hashed_password=hashing_password(user.password),
         role="attendee",
         is_verified=True,
+        full_name=(user.full_name or "").strip() or None,
     )
     db.add(new_user)
     db.commit()

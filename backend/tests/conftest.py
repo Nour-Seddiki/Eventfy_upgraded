@@ -1,5 +1,10 @@
+import os
 import sys
 from pathlib import Path
+
+# Tests use example.com addresses and must not hit DNS; test_account_cleanup.py
+# turns the domain checks on where it needs them. Set before app.config loads.
+os.environ["EMAIL_DOMAIN_CHECKS"] = "false"
 
 import pytest
 from sqlalchemy import create_engine

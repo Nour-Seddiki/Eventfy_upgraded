@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from fastapi import BackgroundTasks, HTTPException
+from fastapi import HTTPException
 
 from app.models.event import Event
 from app.models.notification import Notification  # noqa: F401  (tables used by ticket fulfilment)
@@ -128,7 +128,7 @@ def test_webhook_rejects_bad_signature(db_session, chargily):
     checkout_id = PaymentService.create_checkout(buyer, db_session, event.id)["checkout_id"]
 
     with pytest.raises(HTTPException) as exc:
-        PaymentService.handle_webhook(db_session, _paid_webhook(checkout_id), "forged", BackgroundTasks())
+        PaymentService.handle_webhook(db_session, _paid_webhook(checkout_id), "forged")
     assert exc.value.status_code == 403
     assert db_session.query(Ticket).count() == 0
 
@@ -139,7 +139,7 @@ def test_paid_webhook_issues_one_ticket_even_if_redelivered(db_session, chargily
     payload = _paid_webhook(checkout_id)
 
     for _ in range(2):
-        assert PaymentService.handle_webhook(db_session, payload, _sign(payload), BackgroundTasks()) == {"status": "ok"}
+        assert PaymentService.handle_webhook(db_session, payload, _sign(payload)) == {"status": "ok"}
 
     payment = db_session.query(Payment).one()
     assert payment.status == PaymentStatus.paid
@@ -154,15 +154,15 @@ def test_verify_fulfills_only_once_chargily_reports_paid(db_session, chargily):
     buyer, event = _setup(db_session)
     result = PaymentService.create_checkout(buyer, db_session, event.id)
 
-    pending = PaymentService.verify_payment(buyer, db_session, result["payment_id"], BackgroundTasks())
+    pending = PaymentService.verify_payment(buyer, db_session, result["payment_id"])
     assert pending == {"status": "not_paid", "payment_status": "pending"}
     assert db_session.query(Ticket).count() == 0
 
     chargily.checkouts[result["checkout_id"]]["status"] = "paid"
-    fulfilled = PaymentService.verify_payment(buyer, db_session, result["payment_id"], BackgroundTasks())
+    fulfilled = PaymentService.verify_payment(buyer, db_session, result["payment_id"])
     assert fulfilled["status"] == "fulfilled" and fulfilled["ticket_id"]
 
-    again = PaymentService.verify_payment(buyer, db_session, result["payment_id"], BackgroundTasks())
+    again = PaymentService.verify_payment(buyer, db_session, result["payment_id"])
     assert again["status"] == "already_fulfilled"
     assert db_session.query(Ticket).count() == 1
 
@@ -174,7 +174,7 @@ def test_verify_only_for_payment_owner(db_session, chargily):
 
     other = {"username": "other", "user_id": 999, "user_role": "attendee"}
     with pytest.raises(HTTPException) as exc:
-        PaymentService.verify_payment(other, db_session, result["payment_id"], BackgroundTasks())
+        PaymentService.verify_payment(other, db_session, result["payment_id"])
     assert exc.value.status_code == 404
 
 
@@ -186,7 +186,7 @@ def test_direct_purchase_blocked_for_paid_and_approval_events(db_session, price,
     buyer, event = _setup(db_session, price=price, requires_approval=requires_approval)
 
     with pytest.raises(HTTPException) as exc:
-        ticket_routes.purchase_ticket(buyer, db_session, BackgroundTasks(), event.id)
+        ticket_routes.purchase_ticket(buyer, db_session, event.id)
     assert exc.value.status_code == status_code
     assert db_session.query(Ticket).count() == 0
 
@@ -194,7 +194,7 @@ def test_direct_purchase_blocked_for_paid_and_approval_events(db_session, price,
 def test_direct_purchase_allowed_for_free_open_events(db_session):
     buyer, event = _setup(db_session, price=0.0)
 
-    ticket_routes.purchase_ticket(buyer, db_session, BackgroundTasks(), event.id)
+    ticket_routes.purchase_ticket(buyer, db_session, event.id)
     assert db_session.query(Ticket).count() == 1
 
 
@@ -209,5 +209,5 @@ def test_chargily_disabled_without_secret():
 
     assert payment_service.CHARGILY_AVAILABLE is False
     with pytest.raises(HTTPException) as exc:
-        PaymentService.handle_webhook(None, payload, forged_signature, BackgroundTasks())
+        PaymentService.handle_webhook(None, payload, forged_signature)
     assert exc.value.status_code == 501

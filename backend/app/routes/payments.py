@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Path, BackgroundTasks, Request, Header, Query
+from fastapi import APIRouter, Path, Request, Header, Query
 from starlette import status
 from app.db.session import db_dependency
 from app.services.auth_service import user_dependency
@@ -26,12 +26,11 @@ def create_checkout(
 async def chargily_webhook(
     request: Request,
     db: db_dependency,
-    background_tasks: BackgroundTasks,
     signature: str = Header(alias="signature"),
 ):
     """Chargily calls this endpoint after payment events."""
     payload = (await request.body()).decode("utf-8")
-    return PaymentService.handle_webhook(db, payload, signature, background_tasks)
+    return PaymentService.handle_webhook(db, payload, signature)
 
 
 # ── Verify Payment (frontend success page calls this) ──
@@ -39,11 +38,10 @@ async def chargily_webhook(
 def verify_payment(
     user: user_dependency,
     db: db_dependency,
-    background_tasks: BackgroundTasks,
     payment_id: str = Path(),
 ):
     """Check the checkout with Chargily and fulfill the order (ticket + notification)."""
-    return PaymentService.verify_payment(user, db, payment_id, background_tasks)
+    return PaymentService.verify_payment(user, db, payment_id)
 
 
 # ── My Payments ──────────────────────────────────────

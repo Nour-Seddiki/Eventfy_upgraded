@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../common.css?v=1012">
   <link rel="stylesheet" href="../console.css?v=1">
-  <link rel="stylesheet" href="admin.css?v=1012"/>
+  <link rel="stylesheet" href="admin.css?v=1013"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect x='3' y='4' width='18' height='18' rx='4' fill='%237f0df2' opacity='.15'/><path d='M8 2v4M16 2v4M3 10h18' stroke='%237f0df2' stroke-width='2' stroke-linecap='round'/><circle cx='8' cy='15' r='1.5' fill='%237f0df2'/><circle cx='12' cy='15' r='1.5' fill='%237f0df2'/><circle cx='16' cy='15' r='1.5' fill='%237f0df2'/></svg>">
   <!-- Chart.js CDN -->
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -160,6 +160,10 @@
               <option value="attendee">Attendee</option>
             </select>
           </div>
+          <button class="btn-cleanup" id="cleanupBtn" type="button">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.87 12.14A2 2 0 0116.14 21H7.86a2 2 0 01-1.99-1.86L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+            Clean up accounts
+          </button>
           <div class="search-bar" id="userSearchBar">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
             <input type="text" id="userSearchInput" placeholder="Search users…" autocomplete="off">
@@ -321,7 +325,7 @@
 <div class="detail-overlay" id="detailOverlay"></div>
 <div class="detail-drawer" id="detailDrawer">
   <div class="detail-drawer-header">
-    <h3>User Details</h3>
+    <h3 id="detailDrawerTitle">User Details</h3>
     <button class="detail-close-btn" id="detailCloseBtn">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
     </button>
@@ -337,7 +341,7 @@
 <!-- Scripts: config + api MUST load before admin.js -->
 <script src="../config.js?v=1012"></script>
 <script src="../api.js?v=1015"></script>
-<script src="admin.js?v=1012"></script>
+<script src="admin.js?v=1014"></script>
 <script src="../console.js?v=3"></script>
 </body>
 </html>

@@ -60,11 +60,13 @@ export function apiErrorMessage(body, fallback = 'Something went wrong. Please t
   const d = body && body.detail;
   if (typeof d === 'string' && d.trim()) return d;
   if (Array.isArray(d) && d.length) return d.map(describeValidationError).join(' · ');
+  if (d && typeof d.message === 'string') return d.message;  // {field, message}
   return fallback;
 }
 
 export class ApiError extends Error {
-  constructor(message, status) { super(message); this.status = status; }
+  /** field: the form field the server blamed ({detail: {field, message}}), if any */
+  constructor(message, status, field = null) { super(message); this.status = status; this.field = field; }
 }
 
 let onUnauthorized = () => {};
@@ -92,7 +94,8 @@ export async function api(path, { method = 'GET', json, form, auth = true } = {}
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     const fallback = res.status >= 500 ? 'The server had a problem. Please try again in a moment.' : `Request failed (${res.status})`;
-    throw new ApiError(apiErrorMessage(data, fallback), res.status);
+    const field = data && data.detail && typeof data.detail.field === 'string' ? data.detail.field : null;
+    throw new ApiError(apiErrorMessage(data, fallback), res.status, field);
   }
   return data;
 }

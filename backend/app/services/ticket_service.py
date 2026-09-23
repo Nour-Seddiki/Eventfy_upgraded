@@ -4,12 +4,11 @@ from sqlalchemy import and_
 from app.models.ticket import Ticket
 from app.models.event import Event
 from app.models.user import User
-from fastapi import HTTPException, status, BackgroundTasks
+from fastapi import HTTPException, status
 import uuid
 import qrcode
 from app.schemas.ticket import TicketStatus
 from app.schemas.notification import CreateNotification, NotificationType
-from app.utils.email_sender import send_ticket_email
 from app.utils.qr_generator import generate_qr_code
 
 
@@ -26,7 +25,7 @@ def _ticket_to_dict(ticket: Ticket) -> dict:
 
 class TickectService:
 
-    def purchase_ticket(self, user, db, event_id, background_tasks: BackgroundTasks):
+    def purchase_ticket(self, user, db, event_id):
         # Authenticate user
         if user is None:
             raise HTTPException(status_code=401, detail="Authentication failed")
@@ -105,14 +104,6 @@ class TickectService:
             related_object_type="ticket"
         )
         NotificationService.create_notification(db, notification_data)
-
-        background_tasks.add_task(
-            send_ticket_email,
-            user_email=user_model.email,
-            event_name=event_model.title,
-            event_date=str(event_model.start_date),
-            qr_image=new_ticket.qr_image
-        )
 
         return _ticket_to_dict(new_ticket)
 

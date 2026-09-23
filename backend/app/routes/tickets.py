@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Path, BackgroundTasks, HTTPException, Response, status as fastapi_status
+from fastapi import APIRouter, Path, HTTPException, Response, status as fastapi_status
 from app.db.session import db_dependency 
 from starlette import status 
 from app.services.auth_service import user_dependency
@@ -16,7 +16,6 @@ router = APIRouter(prefix='/ticket', tags=['ticket'])
 def purchase_ticket(
     user: user_dependency,
     db: db_dependency,
-    background_tasks: BackgroundTasks,
     event_id: int = Path(gt=0),
 ):
     # Direct purchase is only for free, open events. Paid events go through
@@ -34,7 +33,7 @@ def purchase_ticket(
                 status_code=fastapi_status.HTTP_402_PAYMENT_REQUIRED,
                 detail="This is a paid event. Complete the payment to get your ticket.",
             )
-    return TickectService().purchase_ticket(user, db, event_id, background_tasks)
+    return TickectService().purchase_ticket(user, db, event_id)
 
 @router.put("/cancell_ticket/{event_id}",status_code=status.HTTP_201_CREATED)
 def cancell_ticket(user:user_dependency,db:db_dependency,event_id:int=Path(gt=0)):

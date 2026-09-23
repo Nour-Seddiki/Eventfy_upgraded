@@ -14,6 +14,7 @@ class CreateUser(BaseModel):
     user_name : str = Field(min_length=1 , max_length=20)
     email : EmailStr = Field(min_length=1 , max_length=60)
     password : str
+    full_name : Optional[str] = Field(default=None, max_length=80)
 
     @validator("password")
     def password_max_72_bytes(cls, value: str) -> str:

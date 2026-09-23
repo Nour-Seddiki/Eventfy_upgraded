@@ -33,10 +33,24 @@ class Admin:
 
     def view_all_users(self, user, db):
         _require_admin(user)
-        users_model = db.query(User).all()
-        if not users_model:
-            raise HTTPException(status_code=404, detail="Users not found")
-        return users_model
+        # Explicit fields: the ORM rows also carry the password hash
+        return [
+            {
+                "id": u.id,
+                "username": u.username,
+                "email": u.email,
+                "full_name": u.full_name,
+                "role": u.role,
+                "avatar_url": u.avatar_url,
+                "location": u.location,
+                "is_verified": u.is_verified,
+                "is_deleted": u.is_deleted,
+                "is_banned": u.is_banned,
+                "is_restricted": u.is_restricted,
+                "created_at": str(u.created_at) if u.created_at else None,
+            }
+            for u in db.query(User).order_by(User.id).all()
+        ]
 
     def deactivate_user(self, user, db, user_to_deactivate):
         _require_admin(user)

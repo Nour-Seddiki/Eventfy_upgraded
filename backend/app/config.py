@@ -27,19 +27,13 @@ class Settings:
     db_user: str
     db_password: str
     db_name: str
-    smtp_host: str
-    smtp_port: int
-    smtp_user: str | None
-    smtp_password: str | None
-    smtp_from: str | None
-    smtp_use_tls: bool
     google_client_id: str | None
     chargily_key: str | None
     chargily_secret: str | None
     chargily_url: str
     frontend_url: str
     backend_url: str | None
-    resend_api_key: str | None
+    email_domain_checks: bool
     admin_emails: frozenset
 
 
@@ -52,19 +46,15 @@ settings = Settings(
     db_user=os.getenv("DB_USER", "postgres"),
     db_password=os.getenv("DB_PASSWORD", ""),
     db_name=os.getenv("DB_NAME", "postgres"),
-    smtp_host=os.getenv("SMTP_HOST", "smtp.gmail.com"),
-    smtp_port=int(os.getenv("SMTP_PORT", "587")),
-    smtp_user=os.getenv("SMTP_USER"),
-    smtp_password=os.getenv("SMTP_PASSWORD"),
-    smtp_from=os.getenv("SMTP_FROM"),
-    smtp_use_tls=os.getenv("SMTP_USE_TLS", "true").lower() in {"1", "true", "yes"},
     google_client_id=os.getenv("GOOGLE_CLIENT_ID", "").strip() or DEFAULT_GOOGLE_CLIENT_ID,
     chargily_key=os.getenv("CHARGILY_KEY"),
     chargily_secret=os.getenv("CHARGILY_SECRET"),
     chargily_url=os.getenv("CHARGILY_URL", "https://pay.chargily.net/test/api/v2/"),
     frontend_url=os.getenv("FRONTEND_URL", "http://localhost:8080"),
     backend_url=os.getenv("BACKEND_URL", "").strip() or None,
-    resend_api_key=os.getenv("RESEND_API_KEY", "").strip() or None,
+    # Reject signups with misspelled, placeholder or disposable domains, or domains
+    # with no mail server (DNS lookup). Off leaves only the syntax check (tests)
+    email_domain_checks=os.getenv("EMAIL_DOMAIN_CHECKS", "true").lower() in {"1", "true", "yes"},
     # Accounts with these emails become admins when they sign up or sign in.
     # How a fresh deployment gets its first admin (signup never grants a role).
     admin_emails=frozenset(e.strip().lower() for e in os.getenv("ADMIN_EMAILS", "").split(",") if e.strip()),

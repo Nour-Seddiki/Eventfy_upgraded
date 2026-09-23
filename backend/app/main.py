@@ -11,7 +11,7 @@ from app.db.base import Base
 from app.routes import (
     auth, events, users, tickets, payments,
     notifications, review, saving_events, admin, recommendations,
-    registrations,
+    registrations, chat,
 )
 
 # Import ALL models so Base.metadata knows every table
@@ -20,6 +20,7 @@ from app.models import (  # noqa: F401
     notification, review as review_model,
     saving_event, recommendation,
     event_question, registration, form_answer,
+    chat as chat_model,
 )
 
 logger = logging.getLogger("eventfy")
@@ -87,6 +88,7 @@ app.include_router(saving_events.router)
 app.include_router(admin.router)
 app.include_router(recommendations.router)
 app.include_router(registrations.router)
+app.include_router(chat.router)
 
 # Static files — ensure the directory exists (fresh deploys won't have it)
 os.makedirs("uploads", exist_ok=True)

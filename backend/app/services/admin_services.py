@@ -217,6 +217,19 @@ class Admin:
             Notification.related_object_type == "user",
             Notification.related_object_id == str(user_model.id),
         ).delete(synchronize_session=False)
+        from app.models.chat import Conversation
+        from app.services.chat_service import _add_message
+        thread = (db.query(Conversation)
+                  .filter(Conversation.kind == "support", Conversation.user_id == user_model.id,
+                          Conversation.topic == "organizer_access", Conversation.status == "open")
+                  .first())
+        if thread is not None and new_role == "organizer":
+            admin_model = db.query(User).filter(User.id == user.get("user_id")).first()
+            _add_message(db, thread, admin_model,
+                         "You're now an organizer 🎉 Open the organizer dashboard from the header to publish your first event.",
+                         from_staff=True, notify=False)  # the role-change notification below covers it
+            thread.status = "closed"
+
         db.commit()
         db.refresh(user_model)
 

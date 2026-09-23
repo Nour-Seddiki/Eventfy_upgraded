@@ -84,6 +84,12 @@ class userServices:
                       for a in admins]
         recipients.append((user_model.id, "Organizer request sent",
                            "An admin will review your request and upgrade your account."))
+        from app.services.chat_service import ChatService
+        ChatService.open_support(
+            db, user_model, "organizer_access",
+            "Hi! I'd like organizer access so I can publish IT events on Eventfy.",
+            notify=False,  # the admins get the organizer-request notification below
+        )
         for recipient_id, title, message in recipients:
             NotificationService.create_notification(db, CreateNotification(
                 user_id=recipient_id,

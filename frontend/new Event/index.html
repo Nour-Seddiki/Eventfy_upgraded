@@ -115,7 +115,7 @@
           <div class="fg span2">
             <label for="eventTitle">EVENT TITLE</label>
             <div class="iw">
-              <input type="text" id="eventTitle" placeholder="e.g. Algiers DevFest 2026" autocomplete="off" />
+              <input type="text" id="eventTitle" placeholder="e.g. Algiers DevFest 2026" autocomplete="off" maxlength="50" />
             </div>
             <p class="field-error" id="errTitle"></p>
           </div>
@@ -287,13 +287,14 @@
           <div class="fg">
             <label for="availableSeats">AVAILABLE SEATS</label>
             <div class="iw seats-iw">
-              <input type="number" id="availableSeats" placeholder="0" min="1" />
+              <input type="number" id="availableSeats" placeholder="e.g. 120" min="1" step="1" />
               <span class="seats-sfx">attendees</span>
             </div>
+            <p class="field-error" id="errSeats"></p>
           </div>
           <div class="cap-callout">
             <span class="material-symbols-outlined">info</span>
-            <p>Leave blank for unlimited capacity. You can change this later in event settings.</p>
+            <p>How many tickets you can give out. You can change it later from your dashboard.</p>
           </div>
         </div>
         <!-- Requires Approval toggle -->
@@ -322,6 +323,7 @@
               <input type="number" id="ticketPrice" placeholder="0.00" min="0" step="0.01" />
               <span class="price-cur" id="priceCurLabel">DZD</span>
             </div>
+            <p class="field-error" id="errPrice"></p>
           </div>
           <div class="fg">
             <label for="currencySelect">CURRENCY</label>
@@ -388,14 +390,14 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="../config.js?v=1012"></script>
-  <script src="../api.js?v=1014"></script>
+  <script src="../api.js?v=1015"></script>
   <script>
     // Auth guard — redirect if not logged in
     if (!isLoggedIn()) {
       window.location.href = '../index.html#/signin';
     }
   </script>
-  <script src="app.js?v=1013"></script>
+  <script src="app.js?v=1015"></script>
   <script src="../console.js?v=1"></script>
 </body>
 </html>

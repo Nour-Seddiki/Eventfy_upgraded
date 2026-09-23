@@ -59,6 +59,49 @@ function getLoginPath() {
   return '../index.html#/signin';
 }
 
+/* ── API Error Messages ───────────────────── */
+const FIELD_LABELS = {
+  title: 'Title', description: 'Description', location: 'Location', price: 'Price',
+  currency: 'Currency', available_tickets: 'Number of seats', start_date: 'Start date',
+  end_date: 'End date', registration_deadline: 'Registration deadline', image: 'Image',
+  email: 'Email', user_name: 'Username', username: 'Username', password: 'Password',
+  current_password: 'Current password', new_password: 'New password', full_name: 'Full name',
+  phone: 'Phone', website: 'Website', bio: 'Bio', rating: 'Rating', answers: 'Answers',
+};
+
+/** One FastAPI/Pydantic validation error → a sentence ("Title must be at most 50 characters"). */
+function describeValidationError(e) {
+  const loc = Array.isArray(e.loc) ? e.loc.filter(p => p !== 'body' && p !== 'query' && p !== 'path') : [];
+  const key = loc.length ? loc[loc.length - 1] : '';
+  const field = FIELD_LABELS[key] || (typeof key === 'string' && key ? key.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase()) : '');
+  const ctx = e.ctx || {};
+  const byType = {
+    missing: 'is required',
+    string_too_short: ctx.min_length === 1 ? 'is required' : `must be at least ${ctx.min_length} characters`,
+    string_too_long: `must be at most ${ctx.max_length} characters`,
+    greater_than_equal: `must be at least ${ctx.ge}`,
+    greater_than: `must be more than ${ctx.gt}`,
+    less_than_equal: `must be at most ${ctx.le}`,
+    int_parsing: 'must be a whole number', int_from_float: 'must be a whole number',
+    float_parsing: 'must be a number', datetime_parsing: 'must be a valid date and time',
+    datetime_from_date_parsing: 'must be a valid date and time', value_error: null,
+  };
+  const phrase = byType[e.type];
+  if (phrase) return field ? `${field} ${phrase}` : phrase.replace(/^./, c => c.toUpperCase());
+  const msg = String(e.msg || 'is invalid').replace(/^(Value|Assertion) error,\s*/i, '');
+  // Model-level rules (no field), and messages that already name their field, read as full sentences
+  if (!field || msg.toLowerCase().startsWith(field.toLowerCase())) return msg.replace(/^./, c => c.toUpperCase());
+  return `${field}: ${msg.replace(/^./, c => c.toLowerCase())}`;
+}
+
+/** Turn an API error body into a message people can act on. */
+function apiErrorMessage(body, fallback = 'Something went wrong. Please try again.') {
+  const d = body && body.detail;
+  if (typeof d === 'string' && d.trim()) return d;
+  if (Array.isArray(d) && d.length) return d.map(describeValidationError).join(' · ');
+  return fallback;
+}
+
 /* ── API Fetch Helper ────────────────────── */
 
 /**
@@ -129,7 +172,7 @@ async function apiLogin(email, password) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Login failed');
+    throw new Error(apiErrorMessage(err, 'Login failed'));
   }
 
   const data = await res.json();
@@ -159,7 +202,7 @@ async function apiSignup(userData) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Registration failed');
+    throw new Error(apiErrorMessage(err, 'Registration failed'));
   }
 
   return await res.json();
@@ -220,7 +263,7 @@ async function apiGoogleLogin(idToken) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Google sign-in failed');
+    throw new Error(apiErrorMessage(err, 'Google sign-in failed'));
   }
 
   const data = await res.json();
@@ -261,7 +304,7 @@ async function updateMyProfile(data) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to update profile');
+    throw new Error(apiErrorMessage(err, 'Failed to update profile'));
   }
   return await res.json();
 }
@@ -315,7 +358,7 @@ async function createEvent(eventData) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to create event');
+    throw new Error(apiErrorMessage(err, 'Failed to create event'));
   }
   return await res.json();
 }
@@ -335,7 +378,7 @@ async function uploadEventImage(eventId, file) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to upload image');
+    throw new Error(apiErrorMessage(err, 'Failed to upload image'));
   }
   return await res.json();
 }
@@ -355,7 +398,7 @@ async function uploadAvatar(file) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to upload avatar');
+    throw new Error(apiErrorMessage(err, 'Failed to upload avatar'));
   }
   return await res.json();
 }
@@ -368,7 +411,7 @@ async function updateEvent(eventId, eventData) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to update event');
+    throw new Error(apiErrorMessage(err, 'Failed to update event'));
   }
   return await res.json();
 }
@@ -469,7 +512,7 @@ async function verifyPayment(paymentId) {
   const res = await apiFetch(`/payment/verify/${encodeURIComponent(paymentId)}`, { method: 'POST' });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Payment verification failed');
+    throw new Error(apiErrorMessage(err, 'Payment verification failed'));
   }
   return await res.json();
 }
@@ -491,7 +534,7 @@ async function submitRegistration(eventId, answers) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Registration failed');
+    throw new Error(apiErrorMessage(err, 'Registration failed'));
   }
   return await res.json();
 }
@@ -511,7 +554,7 @@ async function saveEventQuestions(eventId, questions) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Failed to save questions');
+    throw new Error(apiErrorMessage(err, 'Failed to save questions'));
   }
   return await res.json();
 }
@@ -556,7 +599,7 @@ async function reviewRegistration(registrationId, action) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Review action failed');
+    throw new Error(apiErrorMessage(err, 'Review action failed'));
   }
   return await res.json();
 }

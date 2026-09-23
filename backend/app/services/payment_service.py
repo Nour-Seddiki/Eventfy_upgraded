@@ -9,6 +9,7 @@ from app.models.user import User
 from app.schemas.payment import PaymentStatus
 from app.services.ticket_service import TickectService
 from app.config import settings
+from app.utils.currency import MIN_ONLINE_PRICE_DZD, to_dzd
 
 logger = logging.getLogger(__name__)
 
@@ -34,13 +35,8 @@ except Exception as exc:
     chargily_client = None
     CHARGILY_AVAILABLE = False
 
-# Chargily only charges in DZD. Events priced in another currency are
-# converted with the same fixed rates the frontend displays
-# (keep in sync with frontend/currencyUtils.js).
-RATES_TO_DZD = {"DZD": 1, "USD": 230, "EUR": 280, "GBP": 300}
-
-# Chargily rejects checkouts below this amount
-MIN_CHARGILY_AMOUNT_DZD = 50
+# Chargily only charges in DZD (see app/utils/currency.py for the rates)
+MIN_CHARGILY_AMOUNT_DZD = MIN_ONLINE_PRICE_DZD
 
 
 def _payment_to_dict(p: Payment) -> dict:
@@ -59,11 +55,10 @@ def _payment_to_dict(p: Payment) -> dict:
 
 
 def _price_in_dzd(event: Event) -> int:
-    currency = (event.currency or "DZD").upper()
-    rate = RATES_TO_DZD.get(currency)
-    if rate is None:
-        raise HTTPException(status_code=400, detail=f"Unsupported event currency: {currency}")
-    return int(round(event.price * rate))
+    try:
+        return to_dzd(event.price, event.currency)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 def _frontend_url() -> str:

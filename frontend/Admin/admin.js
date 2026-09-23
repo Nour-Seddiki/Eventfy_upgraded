@@ -735,7 +735,7 @@ function handleDeleteUser(userId, name) {
     async () => {
       try {
         const res = await apiFetch(`/admin/delete_user/${userId}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed');
+        if (!res.ok) throw new Error(apiErrorMessage(await res.json().catch(() => ({})), 'That action failed. Please try again.'));
         showToast(`User "${name}" has been deleted`, 'success');
         await loadDashboard();
       } catch (err) { showToast(err.message, 'error'); }
@@ -750,7 +750,7 @@ function handleBanUser(userId, name) {
     async () => {
       try {
         const res = await apiFetch(`/admin/ban_user/${userId}`, { method: 'PUT' });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed');
+        if (!res.ok) throw new Error(apiErrorMessage(await res.json().catch(() => ({})), 'That action failed. Please try again.'));
         showToast(`User "${name}" has been banned`, 'success');
         await loadDashboard();
       } catch (err) { showToast(err.message, 'error'); }
@@ -765,7 +765,7 @@ function handleRestrictUser(userId, name) {
     async () => {
       try {
         const res = await apiFetch(`/admin/restrict_user/${userId}`, { method: 'PUT' });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed');
+        if (!res.ok) throw new Error(apiErrorMessage(await res.json().catch(() => ({})), 'That action failed. Please try again.'));
         showToast(`User "${name}" has been restricted`, 'success');
         await loadDashboard();
       } catch (err) { showToast(err.message, 'error'); }
@@ -780,7 +780,7 @@ function handleUnrestrictUser(userId, name) {
     async () => {
       try {
         const res = await apiFetch(`/admin/unrestrict_user/${userId}`, { method: 'PUT' });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed');
+        if (!res.ok) throw new Error(apiErrorMessage(await res.json().catch(() => ({})), 'That action failed. Please try again.'));
         showToast(`Restrictions removed for "${name}"`, 'success');
         await loadDashboard();
       } catch (err) { showToast(err.message, 'error'); }
@@ -795,7 +795,7 @@ function handleReactivateUser(userId, name) {
     async () => {
       try {
         const res = await apiFetch(`/admin/reactive_user/${userId}`, { method: 'PUT' });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed');
+        if (!res.ok) throw new Error(apiErrorMessage(await res.json().catch(() => ({})), 'That action failed. Please try again.'));
         showToast(`User "${name}" has been reactivated`, 'success');
         await loadDashboard();
       } catch (err) { showToast(err.message, 'error'); }
@@ -810,7 +810,7 @@ function handleDeleteEvent(eventId, title) {
     async () => {
       try {
         const res = await apiFetch(`/admin/delete_event/${eventId}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed');
+        if (!res.ok) throw new Error(apiErrorMessage(await res.json().catch(() => ({})), 'That action failed. Please try again.'));
         showToast(`Event "${title}" has been deleted`, 'success');
         await loadDashboard();
       } catch (err) { showToast(err.message, 'error'); }
@@ -825,7 +825,7 @@ function handleDeleteReview(reviewId, reviewerName) {
     async () => {
       try {
         const res = await apiFetch(`/admin/delete_review/${reviewId}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed');
+        if (!res.ok) throw new Error(apiErrorMessage(await res.json().catch(() => ({})), 'That action failed. Please try again.'));
         showToast('Review has been deleted', 'success');
         await loadDashboard();
       } catch (err) { showToast(err.message, 'error'); }
@@ -851,7 +851,7 @@ async function handleChangeRole(userId, newRole, name) {
       method: 'PUT',
       body: JSON.stringify({ role: newRole }),
     });
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'Failed');
+    if (!res.ok) throw new Error(apiErrorMessage(await res.json().catch(() => ({})), 'That action failed. Please try again.'));
     showToast(`${name}'s role changed to ${capitalize(newRole)}`, 'success');
     await loadDashboard();
     // Refresh detail drawer if open

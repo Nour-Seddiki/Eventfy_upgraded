@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from datetime import datetime, timezone
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
+from app.schemas.event import check_event_rules
 
 from app.models.event import Event
 from app.models.ticket import Ticket
@@ -104,6 +105,19 @@ class EventService:
                     status_code=status.HTTP_409_CONFLICT,
                     detail="Event title already exists",
                 )
+
+        # The cover image is changed through the upload endpoint; a null here
+        # (edit forms send one) must not wipe it.
+        if updates.get("image") is None:
+            updates.pop("image", None)
+
+        merged = {k: updates.get(k, getattr(event_model, k))
+                  for k in ("start_date", "end_date", "registration_deadline", "price", "currency")}
+        try:
+            check_event_rules(merged["start_date"], merged["end_date"], merged["registration_deadline"],
+                              merged["price"], merged["currency"], new=False)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
 
         for field, value in updates.items():
             setattr(event_model, field, value)

@@ -130,7 +130,7 @@ All settings live in `backend/.env` (see [`backend/.env.example`](backend/.env.e
    even if the attendee closes the tab. Fulfilment is idempotent: a payment never creates two tickets.
 
 Chargily only charges in DZD; events priced in USD, EUR or GBP are converted with fixed rates
-(`RATES_TO_DZD` in `backend/app/services/payment_service.py`, mirrored in `frontend/app/util.js`).
+(`RATES_TO_DZD` in `backend/app/utils/currency.py`, mirrored in `frontend/app/util.js`).
 Chargily has no refund API, so refunds are handled manually.
 
 ## Deployment

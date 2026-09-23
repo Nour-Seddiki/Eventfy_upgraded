@@ -1,7 +1,7 @@
 import { assetUrl } from './api.js';
 
 // Chargily charges in DZD; other currencies are converted with the same
-// fixed rates the backend uses (backend/app/services/payment_service.py).
+// fixed rates the backend uses (backend/app/utils/currency.py).
 export const RATES_TO_DZD = { DZD: 1, USD: 230, EUR: 280, GBP: 300 };
 
 export function priceDzd(ev) {
@@ -79,7 +79,9 @@ export function enrich(e, ctx) {
   const dzd = priceDzd(e);
   const [tintA, tintB] = TINTS[e.id % TINTS.length];
   const venue = e.location || 'Venue TBA';
-  const city = venue.split(',')[0].trim();
+  // The create form saves locations as "Venue, City"
+  const parts = venue.split(',').map(x => x.trim()).filter(Boolean);
+  const city = parts.length > 1 ? parts[parts.length - 1] : parts[0] || venue;
   const attendees = e.attendees || [];
 
   return {

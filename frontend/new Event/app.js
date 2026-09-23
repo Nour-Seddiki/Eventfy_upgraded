@@ -580,7 +580,10 @@ $('previewRemove').addEventListener('click', e => {
 const dateIn = $('startDate'), startIn = $('startTime'), endIn = $('endTime');
 const endDateIn = $('endDate'), endTimeIn = $('endTime');
 const regDeadlineDateIn = $('regDeadlineDate'), regDeadlineTimeIn = $('regDeadlineTime');
-if (dateIn) { dateIn.min = new Date().toISOString().split('T')[0]; if (!dateIn.value) dateIn.value = dateIn.min; }
+if (dateIn) {
+  const t = new Date(), today = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  dateIn.min = today; if (!dateIn.value) dateIn.value = today;
+}
 function fmtT(t) { if (!t) return ''; const [h, m] = t.split(':').map(Number); return `${(h % 12) || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; }
 function updateDur() {
   const dd = $('durationDisplay'), dt = $('durationText');
@@ -660,21 +663,36 @@ function updatePrice() {
    VALIDATION
 ══════════════════════════════════════════ */
 function clearErrs() {
-  ['errMedia', 'errTitle', 'errCity', 'errVenue', 'errStartDate', 'errStart', 'errDesc', 'errLocation'].forEach(clrE);
-  ['eventTitle', 'eventCity', 'venueName', 'startDate', 'startTime', 'eventDesc', 'fullAddress'].forEach(id => remC(id, 'err'));
+  ['errMedia', 'errTitle', 'errCity', 'errVenue', 'errStartDate', 'errStart', 'errDesc', 'errLocation', 'errSeats', 'errPrice'].forEach(clrE);
+  ['eventTitle', 'eventCity', 'venueName', 'startDate', 'startTime', 'eventDesc', 'fullAddress', 'availableSeats', 'ticketPrice',
+   'regDeadlineDate', 'endDate'].forEach(id => remC(id, 'err'));
   descTA.classList.remove('err');
 }
 
 function validate() {
   clearErrs(); const errs = [];
   if (!S.image && !S.editId) { setE('errMedia', 'Please upload a cover image.'); errs.push('img'); }
-  const t = $('eventTitle'); if (!t.value.trim()) { t.classList.add('err'); setE('errTitle', 'Event title is required.'); errs.push('title'); }
+  const t = $('eventTitle'), tl = t.value.trim().length;
+  if (!tl) { t.classList.add('err'); setE('errTitle', 'Event title is required.'); errs.push('title'); }
+  else if (tl < 3 || tl > 50) { t.classList.add('err'); setE('errTitle', 'Use between 3 and 50 characters.'); errs.push('title'); }
   if (!$('eventCity').value.trim()) { addC('eventCity', 'err'); setE('errCity', 'City (wilaya) is required.'); errs.push('city'); }
   const v = $('venueName'); if (!v.value.trim()) { v.classList.add('err'); setE('errVenue', 'Venue name is required.'); errs.push('venue'); }
   if (!dateIn.value) { addC('startDate', 'err'); setE('errStartDate', 'Start date is required.'); errs.push('date'); }
   if (!startIn.value) { addC('startTime', 'err'); setE('errStart', 'Start time is required.'); errs.push('start'); }
   if (!descTA.value.trim()) { descTA.classList.add('err'); setE('errDesc', 'Description is required.'); errs.push('desc'); }
-  if (!S.mapLoc) { addC('fullAddress', 'err'); setE('errLocation', 'Pin a location on the Algeria map.'); errs.push('loc'); }
+  // Events don't store map coordinates, so an edit can't restore the pin: only new events need one
+  if (!S.mapLoc && !S.editId) { addC('fullAddress', 'err'); setE('errLocation', 'Pin a location on the Algeria map.'); errs.push('loc'); }
+
+  const seatsRaw = $('availableSeats').value.trim(), seats = Number(seatsRaw);
+  if (!seatsRaw) { addC('availableSeats', 'err'); setE('errSeats', 'Enter how many seats are available.'); errs.push('seats'); }
+  else if (!Number.isInteger(seats) || seats < 1 || seats > 100000) { addC('availableSeats', 'err'); setE('errSeats', 'Use a whole number between 1 and 100,000.'); errs.push('seats'); }
+
+  if (!$('freeEventToggle').checked) {
+    const price = Number($('ticketPrice').value), cur = $('currencySelect')?.value || 'DZD';
+    const dzd = Math.round(price * (RATES_TO_DZD[cur] || 1));
+    if (!$('ticketPrice').value || !(price > 0)) { addC('ticketPrice', 'err'); setE('errPrice', 'Enter a ticket price, or mark the event as free.'); errs.push('price'); }
+    else if (dzd < MIN_PRICE_DZD) { addC('ticketPrice', 'err'); setE('errPrice', `Paid tickets must cost at least ${MIN_PRICE_DZD} DZD${cur !== 'DZD' ? ` (that's ${(MIN_PRICE_DZD / RATES_TO_DZD[cur]).toFixed(2)} ${cur})` : ''}, the Chargily minimum.`); errs.push('price'); }
+  }
 
   // Date Logic Validations
   if (dateIn.value) {
@@ -765,19 +783,19 @@ $('publishBtn').addEventListener('click', async () => {
     // Build start_date ISO from startDate + startTime
     const sDateVal = $('startDate').value;
     const sTimeVal = $('startTime').value || '00:00';
-    const startDateISO = new Date(`${sDateVal}T${sTimeVal}`).toISOString();
+    const startDateISO = localDateTime(sDateVal, sTimeVal);
 
     // Build end_date ISO (optional)
     let endDateISO = null;
     const eDateVal = $('endDate')?.value;
     const eTimeVal = $('endTime')?.value || '23:59';
-    if (eDateVal) endDateISO = new Date(`${eDateVal}T${eTimeVal}`).toISOString();
+    if (eDateVal) endDateISO = localDateTime(eDateVal, eTimeVal);
 
     // Build registration_deadline ISO (optional)
     let regDeadlineISO = null;
     const rdDateVal = $('regDeadlineDate')?.value;
     const rdTimeVal = $('regDeadlineTime')?.value || '23:59';
-    if (rdDateVal) regDeadlineISO = new Date(`${rdDateVal}T${rdTimeVal}`).toISOString();
+    if (rdDateVal) regDeadlineISO = localDateTime(rdDateVal, rdTimeVal);
 
     // Build location string from city + venue
     const cityName = $('eventCity').value.trim();
@@ -790,7 +808,7 @@ $('publishBtn').addEventListener('click', async () => {
     const currency = $('currencySelect')?.value || 'DZD';
 
     // Get capacity
-    const capacity = parseInt($('availableSeats')?.value) || 100;
+    const capacity = parseInt($('availableSeats').value, 10);
 
     const requiresApproval = $('requiresApprovalToggle')?.checked || false;
 
@@ -804,7 +822,6 @@ $('publishBtn').addEventListener('click', async () => {
       start_date: startDateISO,
       end_date: endDateISO,
       registration_deadline: regDeadlineISO,
-      image: null,
       requires_approval: requiresApproval,
     };
 
@@ -820,6 +837,7 @@ $('publishBtn').addEventListener('click', async () => {
 
     // Upload image if present
     const evId = resultEvent?.id || S.editId;
+    S.publishedUrl = `${location.origin}${location.pathname.replace(/new%20Event\/.*$|new Event\/.*$/, '')}index.html#/event/${evId}`;
     if (S.image && evId) {
       try {
         await uploadEventImage(evId, S.image);
@@ -858,8 +876,9 @@ function openModal(emoji, title, msg, confetti, showShare = true) {
 }
 $('modalClose').addEventListener('click', () => hide($('modalBackdrop')));
 $('modalShare').addEventListener('click', () => {
-  if (navigator.share) navigator.share({ title: $('eventTitle').value || 'My Event', url: location.href }).catch(() => { });
-  else { navigator.clipboard?.writeText(location.href); toast('Link copied!', 'success'); }
+  const url = S.publishedUrl || location.href;
+  if (navigator.share) navigator.share({ title: $('eventTitle').value || 'My Event', url }).catch(() => { });
+  else { navigator.clipboard?.writeText(url); toast('Event link copied!', 'success'); }
 });
 $('modalBackdrop').addEventListener('click', e => { if (e.target === $('modalBackdrop')) hide($('modalBackdrop')); });
 
@@ -879,12 +898,20 @@ function spawnConfetti() {
   }
 }
 
+/* Event times are sent as local time (no Z): the API stores them as Algeria time. */
+function localDateTime(date, time) { return `${date}T${(time || '00:00').slice(0, 5)}:00`; }
+
+// Same rates and minimum as the API (backend/app/utils/currency.py)
+const RATES_TO_DZD = { DZD: 1, USD: 230, EUR: 280, GBP: 300 };
+const MIN_PRICE_DZD = 50;
+
 /* ══ TOAST ══ */
 function toast(msg, type = 'info') {
   const icons = { success: 'check_circle', error: 'error', warn: 'warning', info: 'info' };
   const t = document.createElement('div');
   t.className = `toast toast-${type}`;
-  t.innerHTML = `<span class="material-symbols-outlined">${icons[type] || 'info'}</span><span>${msg}</span>`;
+  t.innerHTML = `<span class="material-symbols-outlined">${icons[type] || 'info'}</span><span></span>`;
+  t.lastElementChild.textContent = msg;
   $('toastContainer').appendChild(t);
   requestAnimationFrame(() => t.classList.add('in'));
   setTimeout(() => { t.classList.remove('in'); setTimeout(() => t.remove(), 300); }, 3800);
@@ -924,11 +951,12 @@ function toast(msg, type = 'info') {
     // Dates — parse ISO strings into date + time inputs
     function fillDateTimeFields(isoStr, dateEl, timeEl) {
       if (!isoStr || !dateEl) return;
-      try {
-        const d = new Date(isoStr);
-        dateEl.value = d.toISOString().split('T')[0];
-        if (timeEl) timeEl.value = d.toTimeString().slice(0, 5);
-      } catch {}
+      // Stored times are already local ("2026-10-20T14:00:00"): read them as-is.
+      // Going through Date/toISOString moved the date to UTC (the day before, near midnight).
+      const m = String(isoStr).match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+      if (!m) return;
+      dateEl.value = m[1];
+      if (timeEl) timeEl.value = m[2];
     }
     fillDateTimeFields(ev.start_date || ev.date, $('startDate'), $('startTime'));
     fillDateTimeFields(ev.end_date, $('endDate'), $('endTime'));

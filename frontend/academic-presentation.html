@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eventfy - Academic Presentation & Defense</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       DESIGN SYSTEM & THEME TOKENS
+       ═══════════════════════════════════════════════════════ */
+    :root {
+      /* Brand Color System */
+      --primary: #8b5cf6; /* Vibrant Purple */
+      --primary-glow: rgba(139, 92, 246, 0.15);
+      --secondary: #f97316; /* Energy Orange */
+      --secondary-glow: rgba(249, 115, 22, 0.15);
+      --accent: #06b6d4; /* Tech Cyan */
+      
+      /* Carbon Dark Theme (Default) */
+      --bg-base: #090d16;
+      --bg-surface: #111827;
+      --bg-surface-elevated: #1f2937;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-glow: rgba(243, 244, 246, 0.1);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(139, 92, 246, 0.4);
+      --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+      --interactive-hover: rgba(255, 255, 255, 0.04);
+      --code-bg: #1e293b;
+    }
+
+    /* Elegant Academic Light Theme (Projector-Optimized) */
+    body.light-theme {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-glow: rgba(15, 23, 42, 0.05);
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-focus: rgba(139, 92, 246, 0.6);
+      --card-shadow: 0 15px 30px -10px rgba(15, 23, 42, 0.08);
+      --interactive-hover: rgba(0, 0, 0, 0.02);
+      --code-bg: #f1f5f9;
+    }
+
+    /* Reset & Base Elements */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.5;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      transition: background-color 0.4s ease, color 0.4s ease;
+      user-select: none;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    /* Background Aesthetic Glows */
+    .ambient-glow {
+      position: absolute;
+      width: 60vw;
+      height: 60vw;
+      border-radius: 50%;
+      filter: blur(150px);
+      z-index: -1;
+      opacity: 0.15;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    body.light-theme .ambient-glow {
+      opacity: 0.08;
+    }
+    .glow-1 {
+      top: -20%;
+      right: -10%;
+      background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+    }
+    .glow-2 {
+      bottom: -20%;
+      left: -10%;
+      background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       PRESENTATION DECK LAYOUT
+       ═══════════════════════════════════════════════════════ */
+    .deck-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 5.5rem 2rem 2.5rem;
+    }
+
+    .slide-wrapper {
+      flex: 1;
+      position: relative;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Modern Slide Switcher (Fades + Subtle Sliding) */
+    .slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(0.98) translateY(10px);
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                  transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                  visibility 0.4s;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1) translateY(0);
+      z-index: 10;
+    }
+
+    /* Header Nav */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4.5rem;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(var(--bg-base), 0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 100;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+    .logo-badge {
+      padding: 0.25rem 0.75rem;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.9rem;
+    }
+
+    /* Presentation Progress Bar */
+    .progress-bar-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: var(--border-subtle);
+      z-index: 100;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Footer & Controls */
+    .footer {
+      position: fixed;
+      bottom: 0.5rem;
+      left: 0;
+      right: 0;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 90;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    
+    .controls-cluster {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-icon {
+      width: 2.2rem;
+      height: 2.2rem;
+      border-radius: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .btn-icon:hover {
+      background: var(--bg-surface-elevated);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .slide-counter {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      background: var(--bg-surface-elevated);
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       TYPOGRAPHY AND STYLING UTILITIES
+       ═══════════════════════════════════════════════════════ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--primary);
+      width: fit-content;
+      margin-bottom: 1rem;
+    }
+    .badge-secondary {
+      color: var(--secondary);
+    }
+    .badge-accent {
+      color: var(--accent);
+    }
+
+    .title-lg {
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    .text-gradient {
+      background: linear-gradient(135deg, var(--primary) 30%, var(--secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .text-gradient-cyan {
+      background: linear-gradient(135deg, var(--primary) 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 700px;
+      margin-bottom: 2rem;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 4rem;
+      align-items: center;
+      height: 100%;
+    }
+    .grid-1-1 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    /* Premium Glassmorphic Cards */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(139, 92, 246, 0.25);
+    }
+    .card-accent:hover {
+      border-color: rgba(249, 115, 22, 0.25);
+    }
+    .card-icon {
+      width: 3.2rem;
+      height: 3.2rem;
+      border-radius: 12px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      margin-bottom: 1.25rem;
+    }
+    .card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.925rem;
+    }
+
+    /* Bullet Lists */
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .bullet-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .bullet-icon {
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 6px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .bullet-icon-orange {
+      background: var(--secondary-glow);
+      color: var(--secondary);
+    }
+    .bullet-item h4 {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+    .bullet-item p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       SLIDE 1: TITLE SLIDE (WITH CUSTOMIZER)
+       ═══════════════════════════════════════════════════════ */
+    .title-wrapper {
+      text-align: left;
+    }
+    .title-banner {
+      font-size: clamp(3rem, 5vw, 4.8rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+    }
+    .academic-meta {
+      margin-top: 3rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .meta-field label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+    .meta-field span {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text-main);
+    }
+
+    /* Config Modal / customizer overlay */
+    .config-trigger {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      background: var(--bg-surface-elevated);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      transition: all 0.2s ease;
+    }
+    .config-trigger:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .config-drawer {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2.5rem;
+      width: 450px;
+      z-index: 1100;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .config-drawer.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1050;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(4px);
+    }
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--text-muted);
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: inherit;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       SLIDE 3: PROBLEM COMPARISON WIDGET
+       ═══════════════════════════════════════════════════════ */
+    .problem-matrix {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    .problem-column {
+      padding: 1.5rem;
+      border-radius: 16px;
+    }
+    .problem-column.social-media {
+      background: rgba(239, 68, 68, 0.03);
+      border: 1px dashed rgba(239, 68, 68, 0.2);
+    }
+    .problem-column.academic-focus {
+      background: rgba(16, 185, 129, 0.03);
+      border: 1px dashed rgba(16, 185, 129, 0.2);
+    }
+    .problem-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+    .tag-red {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+    .tag-green {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+    }
+
+    .sc-item {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.925rem;
+    }
+    .sc-icon {
+      color: #ef4444;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .sc-icon-green {
+      color: #10b981;
+    }
+    .sc-text strong {
+      display: block;
+      color: var(--text-main);
+    }
+    .sc-text p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       SLIDE 7: INTERACTIVE DATABASE VIEWER
+       ═══════════════════════════════════════════════════════ */
+    .db-container {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 2rem;
+      height: 380px;
+    }
+    .db-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+    .db-table-btn {
+      padding: 0.8rem 1rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      text-align: left;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .db-table-btn:hover {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+    }
+    .db-table-btn.active {
+      background: var(--primary-glow);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .db-viewer {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .db-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 1rem;
+    }
+    .db-table-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .db-table-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .db-fields-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 2fr;
+      gap: 0.5rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+    }
+    .db-grid-header {
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .db-cell {
+      padding: 0.35rem 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.03);
+    }
+    body.light-theme .db-cell {
+      border-bottom: 1px dashed rgba(0,0,0,0.03);
+    }
+    .key-pk { color: #f59e0b; font-weight: bold; }
+    .key-fk { color: var(--accent); font-weight: bold; }
+    .type-col { color: #10b981; }
+
+    /* ═══════════════════════════════════════════════════════
+       SLIDE 8: CODE INTERACTIVE CONTAINER
+       ═══════════════════════════════════════════════════════ */
+    .code-container {
+      background: var(--code-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.25rem;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    }
+    body.light-theme .code-container {
+      color: #1e293b;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .code-keyword { color: #ff79c6; }
+    body.light-theme .code-keyword { color: #d01716; }
+    .code-string { color: #f1fa8c; }
+    body.light-theme .code-string { color: #0d904f; }
+    .code-comment { color: #6272a4; font-style: italic; }
+    body.light-theme .code-comment { color: #708090; }
+    .code-number { color: #bd93f9; }
+    body.light-theme .code-number { color: #81007f; }
+
+    /* ═══════════════════════════════════════════════════════
+       SPEAKER NOTES & PRESENTER MODE
+       ═══════════════════════════════════════════════════════ */
+    .presenter-drawer {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 380px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      z-index: 1000;
+      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .presenter-drawer.open {
+      transform: translateX(0);
+    }
+    .presenter-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-surface-elevated);
+    }
+    .presenter-body {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .notes-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .notes-card h4 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .notes-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .notes-list li {
+      font-size: 0.9rem;
+      position: relative;
+      padding-left: 1.25rem;
+      line-height: 1.45;
+    }
+    .notes-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: bold;
+    }
+    .jury-warning {
+      border-left: 3px solid var(--secondary);
+      background: rgba(249, 115, 22, 0.03);
+      padding: 0.75rem 1rem;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.85rem;
+      color: var(--text-main);
+    }
+
+    /* Presentation Timer Widget */
+    .timer-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Space Grotesk', monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0.35rem 0.75rem;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+    }
+    .timer-time {
+      color: var(--text-main);
+    }
+    .timer-time.warning {
+      color: var(--secondary);
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       ANIMATIONS & REVEAL STATES
+       ═══════════════════════════════════════════════════════ */
+    .slide .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                  transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .slide.active .fade-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .slide .delay-1 { transition-delay: 0.1s; }
+    .slide .delay-2 { transition-delay: 0.2s; }
+    .slide .delay-3 { transition-delay: 0.3s; }
+    .slide .delay-4 { transition-delay: 0.4s; }
+
+    /* Custom Switcher UI */
+    .visual-switch {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      aspect-ratio: 4/3;
+      background: #000;
+      box-shadow: var(--card-shadow);
+    }
+    .visual-switch img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+    }
+    .visual-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+      padding: 1.5rem;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow Elements -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Header Nav -->
+  <header class="header">
+    <div class="logo-area">
+      <div class="logo-badge">PFE</div>
+      <span>Eventfy Academic Defense</span>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 1.5rem;">
+      <!-- Timer -->
+      <div class="timer-container" id="presentationTimer">
+        <i data-lucide="timer" style="width: 16px; height: 16px; color: var(--primary);"></i>
+        <span class="timer-time" id="timerDisplay">12:00</span>
+        <div style="display: flex; gap: 0.25rem; margin-left: 0.25rem;">
+          <button class="btn-icon" style="width: 1.25rem; height: 1.25rem; border-radius: 4px;" onclick="toggleTimer()" title="Start/Pause Timer">
+            <i data-lucide="play" id="timerPlayIcon" style="width: 10px; height: 10px;"></i>
+          </button>
+          <button class="btn-icon" style="width: 1.25rem; height: 1.25rem; border-radius: 4px;" onclick="resetTimer()" title="Reset Timer">
+            <i data-lucide="rotate-ccw" style="width: 10px; height: 10px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Action Hints -->
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="btn-icon" onclick="toggleTheme()" title="Toggle Projector Light Theme (Key: T)">
+          <i data-lucide="sun" id="themeIcon"></i>
+        </button>
+        <button class="btn-icon" onclick="togglePresenterMode()" title="Toggle Speaker Notes Console (Key: N)">
+          <i data-lucide="book-open"></i>
+        </button>
+        <button class="btn-icon" onclick="toggleFullscreen()" title="Fullscreen Mode (Key: F)">
+          <i data-lucide="maximize-2"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Presentation Main Area -->
+  <div class="deck-container">
+    <div class="slide-wrapper">
+      
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 1: TITLE / INTRO
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide active" id="slide-1">
+        <div class="config-trigger" onclick="openConfig()">
+          <i data-lucide="user-cog" style="width: 16px; height: 16px;"></i>
+          Configure Presentation Details
+        </div>
+        
+        <div class="title-wrapper fade-in">
+          <span class="badge"><i data-lucide="graduation-cap" style="width: 12px; height: 12px;"></i> Graduation Defense & Thesis Presentation</span>
+          <h1 class="title-banner">
+            Eventfy: <span class="text-gradient">The Unified Event Management</span> <br>
+            & Ticketing Ecosystem
+          </h1>
+          <p class="subtitle" style="font-size: 1.25rem; max-width: 800px;">
+            A centralized, geolocalized event platform designed to solve information fragmentation, combat ticket scams, and optimize attendee-organizer experiences.
+          </p>
+          
+          <div class="academic-meta">
+            <div class="meta-field">
+              <label>Presented By</label>
+              <span id="displayPresenter">Student Name(s)</span>
+            </div>
+            <div class="meta-field">
+              <label>Academic Supervisor</label>
+              <span id="displaySupervisor">Dr. Supervisor Name</span>
+            </div>
+            <div class="meta-field">
+              <label>Institution & Department</label>
+              <span id="displayInstitution">Faculty of Computer Science</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 2: CONTEXT
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide" id="slide-2">
+        <div class="grid-2">
+          <div class="fade-in">
+            <span class="badge"><i data-lucide="globe" style="width: 12px; height: 12px;"></i> Context & Motivation</span>
+            <h2 class="title-lg">The Surge of the <br><span class="text-gradient">Experience Economy</span></h2>
+            <p class="subtitle">Digital interactions are moving back towards real-world engagements. The event ecosystem has evolved from passive viewing to active physical gathering.</p>
+            
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <div class="bullet-icon"><i data-lucide="trending-up" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Booming Event Landscape</h4>
+                  <p>Cultural festivals, scientific symposiums, corporate workshops, and local gatherings are rising at double-digit compound rates yearly.</p>
+                </div>
+              </li>
+              <li class="bullet-item">
+                <div class="bullet-icon"><i data-lucide="users" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Gen Z & Millennial Shifts</h4>
+                  <p>78% of millennials prefer spending capital on shared real-world experiences over physical material possessions.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="fade-in delay-2">
+            <div class="card" style="text-align: center; padding: 3rem 2rem;">
+              <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem;">The Challenge</h3>
+              <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem;">
+                "How do we bridge the gap between organizers creating extraordinary experiences and local audiences searching for them?"
+              </p>
+              <div style="width: 80px; height: 4px; background: linear-gradient(90deg, var(--primary), var(--secondary)); margin: 0 auto; border-radius: 2px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 3: THE PROBLEM
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide" id="slide-3">
+        <div class="fade-in">
+          <span class="badge badge-secondary"><i data-lucide="alert-triangle" style="width: 12px; height: 12px;"></i> Problem Statement</span>
+          <h2 class="title-lg" style="margin-bottom: 2rem;">Why Social Media Event Search is <span class="text-gradient">Fundamentally Broken</span></h2>
+        </div>
+        
+        <div class="problem-matrix fade-in delay-2">
+          <!-- Column 1: Social Media Flaws -->
+          <div class="problem-column social-media">
+            <div class="problem-tag tag-red">Traditional Way: Facebook & Instagram</div>
+            
+            <div class="sc-item">
+              <i data-lucide="x-circle" class="sc-icon"></i>
+              <div class="sc-text">
+                <strong>Algorithmic Suppression & Pay-to-Play</strong>
+                <p>Feeds prioritize paid ads or viral text posts. Niche, local, or university events rarely appear in users' organic feeds.</p>
+              </div>
+            </div>
+            
+            <div class="sc-item">
+              <i data-lucide="clock" class="sc-icon" style="color: #f59e0b;"></i>
+              <div class="sc-text">
+                <strong>Chronological Chaos & Outdated Content</strong>
+                <p>Social algorithms show historical items. Users scroll past events that already took place while missing ones happening *tonight*.</p>
+              </div>
+            </div>
+
+            <div class="sc-item">
+              <i data-lucide="layers-3" class="sc-icon"></i>
+              <div class="sc-text">
+                <strong>Extreme Information Fragmentation</strong>
+                <p>Event times, dates, exact locations, and check-in conditions are scattered across comment threads, direct messages, and poster images.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Eventfy's Counter-Paradigm -->
+          <div class="problem-column academic-focus">
+            <div class="problem-tag tag-green">The Solution: Eventfy Core Design</div>
+            
+            <div class="sc-item">
+              <i data-lucide="check-circle" class="sc-icon sc-icon-green"></i>
+              <div class="sc-text">
+                <strong>Chronological, Location-Based Registry</strong>
+                <p>Events are structured and queried based on proximity and timestamp, not visual virality or comment counts.</p>
+              </div>
+            </div>
+
+            <div class="sc-item">
+              <i data-lucide="map" class="sc-icon sc-icon-green"></i>
+              <div class="sc-text">
+                <strong>Map-First Geolocated Search</strong>
+                <p>Users visually slide across a local map to view real-time pins showing active events nearby, removing search friction.</p>
+              </div>
+            </div>
+
+            <div class="sc-item">
+              <i data-lucide="database" class="sc-icon sc-icon-green"></i>
+              <div class="sc-text">
+                <strong>Standardized Data Modeling</strong>
+                <p>Ticketing, price structure, registration deadlines, and locations are standardized in strict relational schemas.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 4: THE SOLUTION
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide" id="slide-4">
+        <div class="grid-2">
+          <div class="fade-in">
+            <span class="badge"><i data-lucide="check-square" style="width: 12px; height: 12px;"></i> Proposed System</span>
+            <h2 class="title-lg">Introducing <span class="text-gradient">Eventfy</span></h2>
+            <p class="subtitle">A full-lifecycle ecosystem uniting organizers, ticket operations, payments, and attendee social interactions under a single secure umbrella.</p>
+            
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <div class="bullet-icon"><i data-lucide="map-pin" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Attendee Discovery Layer</h4>
+                  <p>1-click map browsing, personalized categorization, direct bookings, and offline-compatible QR codes.</p>
+                </div>
+              </li>
+              <li class="bullet-item">
+                <div class="bullet-icon"><i data-lucide="shield-check" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Secure Organizer Panel</h4>
+                  <p>Real-time analytics, instant payouts via trusted integrations, check-in validation, and fraud reduction.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="fade-in delay-2">
+            <div class="visual-switch">
+              <img src="img/hero.png" onerror="this.src='https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=800&q=80'" alt="Unified Platform UI mockup">
+              <div class="visual-overlay">
+                <h4 style="font-family: 'Space Grotesk', sans-serif;">Unified & Scalable Platform</h4>
+                <p style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.25rem;">Built to deliver maximum responsiveness across mobile, tablet, and desktop viewports.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 5: MODULES / FEATURES
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide" id="slide-5">
+        <div class="fade-in">
+          <span class="badge badge-accent"><i data-lucide="cpu" style="width: 12px; height: 12px;"></i> Core Modules</span>
+          <h2 class="title-lg">System Functional Breakdown</h2>
+        </div>
+        
+        <div class="grid-3 fade-in delay-2" style="margin-top: 1.5rem;">
+          <div class="card">
+            <div class="card-icon"><i data-lucide="navigation"></i></div>
+            <h3>Discovery Suite</h3>
+            <p>High-performance Leaflet-based geolocation search, multi-category tag matching, bookmarking systems, and review archives.</p>
+          </div>
+          <div class="card card-accent">
+            <div class="card-icon" style="color: var(--secondary);"><i data-lucide="qr-code"></i></div>
+            <h3>Ticketing Operations</h3>
+            <p>Automatic generation of encrypted UUID ticketing identifiers, direct wallet delivery, PDF generation, and scanning validation nodes.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon" style="color: var(--accent);"><i data-lucide="wallet"></i></div>
+            <h3>Transactional Node</h3>
+            <p>Secure webhook-validated payment architectures supporting Stripe Connect and Chargily (for local dynamic DZD payments).</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 6: TECH ARCHITECTURE
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide" id="slide-6">
+        <div class="grid-2">
+          <div class="fade-in">
+            <span class="badge"><i data-lucide="server" style="width: 12px; height: 12px;"></i> System Architecture</span>
+            <h2 class="title-lg">High-Performance <br><span class="text-gradient">Backend Architecture</span></h2>
+            <p class="subtitle">Designed for low latency, secure transactional integrity, and standard compliance.</p>
+            
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <div class="bullet-icon"><i data-lucide="zap" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>FastAPI RESTful Engine</h4>
+                  <p>Asynchronous ASGI structure yielding fast query responses, automated OpenAPI docs, and strict type safety via Pydantic models.</p>
+                </div>
+              </li>
+              <li class="bullet-item">
+                <div class="bullet-icon"><i data-lucide="database" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Supabase & Postgres Relational Node</h4>
+                  <p>Rich indexes on queries, robust Referential Integrity constraint maps, and transaction protection policies.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="fade-in delay-2">
+            <div class="card" style="background: var(--bg-surface-elevated); padding: 1.75rem;">
+              <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem; margin-bottom: 1rem; color: var(--primary);">System Dependency Stack</h3>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.25rem;">
+                  <strong style="color: var(--text-main);">Framework</strong> <span style="color: var(--text-muted);">FastAPI (Python 3.10+)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.25rem;">
+                  <strong style="color: var(--text-main);">Database Core</strong> <span style="color: var(--text-muted);">PostgreSQL (v15+) / Supabase</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.25rem;">
+                  <strong style="color: var(--text-main);">ORM Mapper</strong> <span style="color: var(--text-muted);">SQLAlchemy / Alembic Migrations</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.25rem;">
+                  <strong style="color: var(--text-main);">Auth Protocol</strong> <span style="color: var(--text-muted);">JWT Secure Hashes & Web Tokens</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-bottom: 0.25rem;">
+                  <strong style="color: var(--text-main);">Client Layer</strong> <span style="color: var(--text-muted);">Vanilla JS (ES6) / CSS Grid & Flexbox</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 7: DATABASE SCHEMA INTERACTIVE
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide" id="slide-7">
+        <div class="fade-in">
+          <span class="badge badge-accent"><i data-lucide="database" style="width: 12px; height: 12px;"></i> Relational Schema</span>
+          <h2 class="title-lg" style="margin-bottom: 1rem;">Interactive <span class="text-gradient">Database Architecture</span></h2>
+          <p class="subtitle" style="margin-bottom: 1.5rem;">Inspect the 8 core normalized database tables supporting our system workflows.</p>
+        </div>
+        
+        <div class="db-container fade-in delay-2">
+          <!-- Tables Sidebar -->
+          <div class="db-sidebar" id="dbSidebar">
+            <button class="db-table-btn active" onclick="showTableSchema('users')">users <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+            <button class="db-table-btn" onclick="showTableSchema('events')">events <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+            <button class="db-table-btn" onclick="showTableSchema('tickets')">tickets <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+            <button class="db-table-btn" onclick="showTableSchema('payments')">payments <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+            <button class="db-table-btn" onclick="showTableSchema('notifications')">notifications <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+            <button class="db-table-btn" onclick="showTableSchema('reviews')">reviews <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+            <button class="db-table-btn" onclick="showTableSchema('saving_events')">saving_events <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+            <button class="db-table-btn" onclick="showTableSchema('recommendations')">recommendations <i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>
+          </div>
+          
+          <!-- Schema Viewer -->
+          <div class="db-viewer" id="dbViewer">
+            <!-- Dynamic Content Injected via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 8: THE RECOMMENDATION ENGINE
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide" id="slide-8">
+        <div class="grid-2">
+          <div class="fade-in">
+            <span class="badge"><i data-lucide="code" style="width: 12px; height: 12px;"></i> Algorithmic Core</span>
+            <h2 class="title-lg">Personalized <br><span class="text-gradient">Recommendation Engine</span></h2>
+            <p class="subtitle">Eventfy implements a direct recommendations generator evaluating user behavioral data, history, and category overlaps.</p>
+            
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <div class="bullet-icon"><i data-lucide="bar-chart-3" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Score Calculation Model</h4>
+                  <p>Computes recommendation indexes based on category frequency weights, bookmark signals, and event dates.</p>
+                </div>
+              </li>
+              <li class="bullet-item">
+                <div class="bullet-icon" style="color: var(--secondary); background: var(--secondary-glow);"><i data-lucide="filter" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Dynamic Relevance Sorting</h4>
+                  <p>Filters out expired events automatically, and sorts recommendations with a decay function relative to the remaining ticket count.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="fade-in delay-2">
+            <!-- Code Block display -->
+            <div class="code-container">
+              <div class="code-comment"># Recommendations Generation Algorithm</div>
+              <div><span class="code-keyword">def</span> <span style="color: #50fa7b;">generate_user_recommendations</span>(db, user_id):</div>
+              <div style="padding-left: 1rem;"><span class="code-comment"># 1. Fetch user bookmarks & tickets</span></div>
+              <div style="padding-left: 1rem;">categories = db.query(Event.category)...</div>
+              <div style="padding-left: 1rem;"><span class="code-comment"># 2. Compute category frequency map</span></div>
+              <div style="padding-left: 1rem;">freq_map = Counter(categories)</div>
+              <div style="padding-left: 1rem;"><span class="code-comment"># 3. Query future events in hot categories</span></div>
+              <div style="padding-left: 1rem;">candidates = db.query(Event).filter(</div>
+              <div style="padding-left: 2rem;">Event.date &gt; datetime.utcnow(),</div>
+              <div style="padding-left: 2rem;">Event.category.in_(freq_map.keys())</div>
+              <div style="padding-left: 1rem;">)</div>
+              <div style="padding-left: 1rem;"><span class="code-comment"># 4. Insert customized scores into recommendations</span></div>
+              <div style="padding-left: 1rem;"><span class="code-keyword">for</span> event <span class="code-keyword">in</span> candidates:</div>
+              <div style="padding-left: 2rem;">score = freq_map[event.category] * <span class="code-number">10</span></div>
+              <div style="padding-left: 2rem;">save_recommendation(db, user_id, event.id, score)</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 9: SECURITY & TRANSACTION SYSTEM
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide" id="slide-9">
+        <div class="grid-2">
+          <div class="fade-in">
+            <span class="badge badge-secondary"><i data-lucide="shield" style="width: 12px; height: 12px;"></i> Trust & Security</span>
+            <h2 class="title-lg">Anti-Fraud & <br><span class="text-gradient">Secure Operations</span></h2>
+            <p class="subtitle">Social media bookings suffer from high risk. Eventfy mitigates structural fraud using modern cryptographic and payment integrations.</p>
+            
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <div class="bullet-icon"><i data-lucide="lock" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Encrypted QR Token Verification</h4>
+                  <p>QR codes contain high-entropy, single-use signed hashes. Screenshot sharing is prevented via real-time sliding validation windows on check-in scanner nodes.</p>
+                </div>
+              </li>
+              <li class="bullet-item">
+                <div class="bullet-icon" style="color: var(--accent); background: rgba(6, 182, 212, 0.15);"><i data-lucide="credit-card" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Webhook-Protected Checkout Flows</h4>
+                  <p>Transactions rely on cryptographically signed Stripe / Chargily webhooks, ensuring tickets are only created after money settlement is successfully verified.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="fade-in delay-2">
+            <div class="card" style="border-color: rgba(6, 182, 212, 0.3); background: rgba(6, 182, 212, 0.02);">
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                <i data-lucide="badge-check" style="color: var(--accent); width: 28px; height: 28px;"></i>
+                <h3 style="margin: 0; font-family: 'Space Grotesk', sans-serif;">Security Score: AAA</h3>
+              </div>
+              <p style="margin-bottom: 1rem; font-size: 0.9rem; line-height: 1.6;">
+                - 100% Protection from double-spending ticket duplicates.<br>
+                - Database triggers automatically lock ticket allocation seats on checkout creation to prevent race conditions.<br>
+                - User credentials pass through secure PBKDF2 hashing routines.
+              </p>
+              <div style="padding: 0.5rem; background: var(--bg-surface-elevated); border-radius: 8px; font-size: 0.8rem; font-family: monospace; color: var(--accent); text-align: center;">
+                SECURE SHA256 VALIDATED NODES
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════
+           SLIDE 10: PERSPECTIVES & CONCLUSION
+           ═══════════════════════════════════════════════════════ -->
+      <section class="slide" id="slide-10">
+        <div class="grid-2">
+          <div class="fade-in">
+            <span class="badge"><i data-lucide="compass" style="width: 12px; height: 12px;"></i> Roadmap & Horizons</span>
+            <h2 class="title-lg">Perspectives & <br><span class="text-gradient">Conclusion</span></h2>
+            <p class="subtitle">Future directions designed to scale the prototype into a dominant regional event marketplace.</p>
+            
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <div class="bullet-icon" style="color: var(--accent); background: rgba(6, 182, 212, 0.15);"><i data-lucide="instagram" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Creative Solution: Social Scraper Engine</h4>
+                  <p>Developing an autonomous backend pipeline targeting Facebook & Instagram. Scrapes messy feed events, maps metadata with AI processing, and automatically publishes structured pins onto the Eventfy map.</p>
+                </div>
+              </li>
+              <li class="bullet-item">
+                <div class="bullet-icon"><i data-lucide="smartphone" style="width: 16px; height: 16px;"></i></div>
+                <div>
+                  <h4>Native Mobile Deployments</h4>
+                  <p>Expanding client views into React Native or Flutter apps to provide native geolocalized hardware pushes and integrated system wallet storage.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="fade-in delay-2">
+            <div class="card" style="text-align: center; border: 1px solid var(--primary); background: linear-gradient(180deg, var(--bg-surface) 0%, var(--primary-glow) 100%);">
+              <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2.2rem; margin-bottom: 0.5rem;" class="text-gradient">Thank You!</h2>
+              <p style="color: var(--text-main); font-weight: 600; margin-bottom: 2rem;">We welcome questions from the Juries.</p>
+              
+              <div style="display: flex; gap: 0.5rem; justify-content: center; font-size: 0.85rem; color: var(--text-muted);">
+                <span>Eventfy Ecosystem</span> | <span>Open Source</span> | <span>2026 Defense</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Footer Nav & Controls -->
+  <footer class="footer">
+    <div>
+      <span>Press <strong style="color: var(--primary);">N</strong> for Notes | <strong style="color: var(--primary);">T</strong> for Themes | <strong style="color: var(--primary);">F</strong> for Fullscreen</span>
+    </div>
+    
+    <div class="controls-cluster">
+      <button class="btn-icon" onclick="prevSlide()" title="Previous Slide (Left Arrow)"><i data-lucide="arrow-left"></i></button>
+      <span class="slide-counter" id="slideCounter">1 / 10</span>
+      <button class="btn-icon" onclick="nextSlide()" title="Next Slide (Right Arrow/Space)"><i data-lucide="arrow-right"></i></button>
+    </div>
+  </footer>
+
+  <!-- Progress Bar Line -->
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- Presenter Drawer (Speaker Notes Panel) -->
+  <div class="presenter-drawer" id="presenterDrawer">
+    <div class="presenter-header">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="book-open" style="color: var(--primary); width: 20px; height: 20px;"></i>
+        <h3 style="font-size: 1.1rem; font-family: 'Space Grotesk', sans-serif;">Presenter Console</h3>
+      </div>
+      <button class="btn-icon" onclick="togglePresenterMode()" style="width: 1.8rem; height: 1.8rem;"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+    </div>
+    <div class="presenter-body" id="presenterNotesBody">
+      <!-- Dynamic notes loaded here based on active slide -->
+    </div>
+  </div>
+
+  <!-- Customization Config Drawer Modal -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeConfig()"></div>
+  <div class="config-drawer" id="configDrawer">
+    <h3 style="font-family: 'Space Grotesk', sans-serif; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">Presentation Settings</h3>
+    
+    <div class="form-group">
+      <label>Presenter Name(s)</label>
+      <input type="text" id="inputPresenter" value="Nour Seddiki & Team" placeholder="Enter student name(s)">
+    </div>
+    
+    <div class="form-group">
+      <label>Academic Supervisor</label>
+      <input type="text" id="inputSupervisor" value="Dr. A. Rahmouni" placeholder="Enter supervisor's name">
+    </div>
+    
+    <div class="form-group">
+      <label>Institution / University</label>
+      <input type="text" id="inputInstitution" value="ESI - National School of Computer Science" placeholder="Enter institution name">
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+      <button class="btn-icon" style="padding: 0.5rem 1.5rem; width: auto; font-weight: bold;" onclick="closeConfig()">Save & Apply</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       INTERACTIVE FUNCTIONALITY SCRIPTS
+       ═══════════════════════════════════════════════════════ -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Presentation State
+    let currentSlideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    
+    // Timer Variables
+    let timerInterval = null;
+    let timeRemaining = 720; // 12 minutes in seconds
+    let isTimerRunning = false;
+
+    // Database Mock Schema Data for Slide 7
+    const schemaData = {
+      users: {
+        desc: "Stores credential, biometric metadata, authentication profiling details, and roles.",
+        fields: [
+          { name: "id", type: "SERIAL", key: "PK", notes: "Unique auto-incrementing key" },
+          { name: "username", type: "VARCHAR", key: "UNIQUE", notes: "Handle used for social displays" },
+          { name: "email", type: "VARCHAR", key: "UNIQUE", notes: "Primary contact and system login ID" },
+          { name: "hashed_password", type: "VARCHAR", key: "", notes: "Secure PBKDF2 hashed password string" },
+          { name: "role", type: "VARCHAR", key: "", notes: "Defaults to 'attendee', supports 'organizer', 'admin'" },
+          { name: "is_verified", type: "BOOLEAN", key: "", notes: "Indicates email verified state" },
+          { name: "profile_picture", type: "VARCHAR", key: "", notes: "S3 / Supabase storage bucket file URI" },
+          { name: "created_at", type: "TIMESTAMP", key: "", notes: "Record creation UTC timestamp" }
+        ]
+      },
+      events: {
+        desc: "Tracks event parameters, schedule, geo-coordinates, ticket boundaries, and ownership mapping.",
+        fields: [
+          { name: "id", type: "SERIAL", key: "PK", notes: "Primary unique serial key" },
+          { name: "title", type: "VARCHAR", key: "", notes: "Heading title of the event" },
+          { name: "description", type: "TEXT", key: "", notes: "HTML / Rich details of event schedules" },
+          { name: "category", type: "VARCHAR", key: "INDEX", notes: "Category tag used for algorithmic queries" },
+          { name: "location", type: "VARCHAR", key: "", notes: "Structured physical coordinates or URL string" },
+          { name: "price", type: "FLOAT", key: "", notes: "Base pricing ticket value (Supports free events)" },
+          { name: "available_tickets", type: "INTEGER", key: "", notes: "Capacity limit to avoid overbooking races" },
+          { name: "organizer_id", type: "INTEGER", key: "FK -> users.id", notes: "Establishes event creator ownership" }
+        ]
+      },
+      tickets: {
+        desc: "Tracks ticket issuances, validity status parameters, and UUID-level verification signatures.",
+        fields: [
+          { name: "id", type: "SERIAL", key: "PK", notes: "Unique serial key" },
+          { name: "user_id", type: "INTEGER", key: "FK -> users.id", notes: "Identifies target ticket holder user" },
+          { name: "event_id", type: "INTEGER", key: "FK -> events.id", notes: "Connects ticket to target event" },
+          { name: "status", type: "VARCHAR", key: "", notes: "Confirmed / Cancelled / Refunded flags" },
+          { name: "qr_code", type: "VARCHAR", key: "UNIQUE", notes: "Cryptographically signed high-entropy hash" },
+          { name: "is_validated", type: "BOOLEAN", key: "", notes: "Set true instantly upon scanner confirmation" }
+        ]
+      },
+      payments: {
+        desc: "Monitors transaction settlements, gateway webhook hashes, and DZD local payment states.",
+        fields: [
+          { name: "id", type: "SERIAL", key: "PK", notes: "Primary identifier" },
+          { name: "user_id", type: "INTEGER", key: "FK -> users.id", notes: "Identifies payment initiator" },
+          { name: "ticket_id", type: "INTEGER", key: "FK -> tickets.id", notes: "Maps transaction to generated ticket" },
+          { name: "amount", type: "FLOAT", key: "", notes: "Settled monetary transactional sum" },
+          { name: "currency", type: "VARCHAR", key: "", notes: "Defaults to 'DZD' Algerian Dinars" },
+          { name: "status", type: "VARCHAR", key: "", notes: "Pending / Completed / Failed statuses" },
+          { name: "provider_ref", type: "VARCHAR", key: "", notes: "External Stripe / Chargily transaction reference" }
+        ]
+      },
+      notifications: {
+        desc: "Dispatches system updates, push notifications, and alert broadcasts.",
+        fields: [
+          { name: "id", type: "SERIAL", key: "PK", notes: "Unique serial" },
+          { name: "user_id", type: "INTEGER", key: "FK -> users.id", notes: "Target recipient reference" },
+          { name: "type", type: "VARCHAR", key: "", notes: "Alert type: ticket_sold / reminder / system" },
+          { name: "title", type: "VARCHAR", key: "", notes: "Brief notice summary header" },
+          { name: "message", type: "TEXT", key: "", notes: "Alert description data" },
+          { name: "read", type: "BOOLEAN", key: "", notes: "Defaults to false" }
+        ]
+      },
+      reviews: {
+        desc: "Stores user experiences, rating nodes, and verified purchase flags.",
+        fields: [
+          { name: "id", type: "SERIAL", key: "PK", notes: "Unique serial key" },
+          { name: "rating", type: "INTEGER", key: "", notes: "Scale of 1-5 integer score stars" },
+          { name: "comment", type: "TEXT", key: "", notes: "Text feedback notes" },
+          { name: "reviewer_id", type: "INTEGER", key: "FK -> users.id", notes: "Review author key" },
+          { name: "event_id", type: "INTEGER", key: "FK -> events.id", notes: "Target event being evaluated" },
+          { name: "is_verified_purchase", type: "BOOLEAN", key: "", notes: "Verified using actual ticket mapping records" }
+        ]
+      },
+      saving_events: {
+        desc: "Tracks attendee bookmark records for notifications and map prioritizing.",
+        fields: [
+          { name: "id", type: "SERIAL", key: "PK", notes: "Unique identifier" },
+          { name: "user_id", type: "INTEGER", key: "FK -> users.id", notes: "User who added the bookmark" },
+          { name: "event_id", type: "INTEGER", key: "FK -> events.id", notes: "Target event marked by the user" }
+        ]
+      },
+      recommendations: {
+        desc: "Calculates scores based on algorithms to push relevant pins to user dashboards.",
+        fields: [
+          { name: "id", type: "SERIAL", key: "PK", notes: "Unique identifier" },
+          { name: "user_id", type: "INTEGER", key: "FK -> users.id", notes: "Target user parameter" },
+          { name: "event_id", type: "INTEGER", key: "FK -> events.id", notes: "Target event candidate key" },
+          { name: "score", type: "INTEGER", key: "INDEX", notes: "Algorithmic weight value (Higher = More Relevant)" }
+        ]
+      }
+    };
+
+    // Speaker Notes Data mapped to slide indices (0 to 9)
+    const speakerNotes = [
+      {
+        title: "Slide 1: Title & Welcome",
+        talkingPoints: [
+          "Greet the Honorable President of the Jury and distinguished members.",
+          "Introduce yourself and state your project: Eventfy - a robust event management and ticketing platform.",
+          "State that this project represents the bridge between highly scalable modern software development and real-world utility in our region."
+        ],
+        juryTips: "Juries love to see immediate structure. Use the settings panel (cog on top right) to input your real school details dynamically during the presentation."
+      },
+      {
+        title: "Slide 2: Context & Motivation",
+        talkingPoints: [
+          "Explain the paradigm shift towards the 'experience economy'. People, especially younger generations, crave shared, real-world events.",
+          "Note that local events, workshops, scientific meetings, and concerts are flourishing.",
+          "Connect the context to the core challenge: there is a huge supply of events, but finding them is incredibly hard for attendees."
+        ],
+        juryTips: "Be ready to support the motivation. If asked why this is important, refer to the high growth rate of independent events in Algeria and similar dynamic economies."
+      },
+      {
+        title: "Slide 3: The Core Problem (Jury Hook)",
+        talkingPoints: [
+          "Deliver the core criticism: Facebook and Instagram pages are severely broken for event discovering.",
+          "Chronological Chaos: Algorithms prioritize historical posts, burying upcoming local events.",
+          "Pay-to-play: Small community organizers get zero visibility because they don't have large marketing budgets.",
+          "Fragmentation: Finding an event requires checking 5 different pages, messaging organizers, or zooming in on banner pictures to find times."
+        ],
+        juryTips: "Emphasize this problem! Juries themselves have struggled to find university events. Make it relatable."
+      },
+      {
+        title: "Slide 4: The Eventfy Solution",
+        talkingPoints: [
+          "Present Eventfy as a unified solution addressing both discovery and logistics.",
+          "Map-First Interface: Instantly see what is happening nearby, structured chronologically.",
+          "End-to-End lifecycle: discovery -> instant registration -> mobile wallet entry -> scanner validation."
+        ],
+        juryTips: "Keep it high-level here, you will dive into the tech soon."
+      },
+      {
+        title: "Slide 5: Functional Breakdown",
+        talkingPoints: [
+          "Explain the three main pillars: Discovery (UI map), Ticketing Operations (QR security), and Transactions (payout nodes).",
+          "Emphasize that the system is fully responsive, looking spectacular on mobile screens as well."
+        ],
+        juryTips: "Explain the payment options clearly. Juries often ask about native payments in DZD. Mention integrating both Stripe (global) and Chargily (for local dynamic bank links)."
+      },
+      {
+        title: "Slide 6: System Architecture & Stack",
+        talkingPoints: [
+          "Describe the tech stack: FastAPI in the backend for asynchronous, high-speed request handling.",
+          "Discuss PostgreSQL as our secure data warehouse, powered by SQLAlchemy ORM.",
+          "State that by avoiding large frameworks in the client, we built a highly optimized Vanilla JavaScript client keeping page sizes extremely low."
+        ],
+        juryTips: "Highlight why you chose FastAPI (async execution speed and automatic OpenAPI documentation) over slower alternatives like Django or Express."
+      },
+      {
+        title: "Slide 7: Database Architecture (Technical Showcase)",
+        talkingPoints: [
+          "Explain the relational mapping. Highlight that we fully normalized our database into 8 core tables.",
+          "Click on different tables in the active view to show the jury the specific foreign keys mapping events to organizers, tickets to users, and payments to tickets.",
+          "This guarantees no orphaned records and perfect referential integrity."
+        ],
+        juryTips: "This is a technical goldmine! Click through the tables during your speech. Juries are wowed by interactive databases in slides!"
+      },
+      {
+        title: "Slide 8: Algorithmic Core (Recommendation Engine)",
+        talkingPoints: [
+          "Describe how Eventfy delivers organic recommendations. We use a SQL-driven weight score counter.",
+          "We analyze user history (category tags, saved events, active tickets).",
+          "The engine queries future events matching user tags, computes custom weight vectors, and populates the recommendations index."
+        ],
+        juryTips: "Juries love algorithms! Walk through the Python-code snippet displayed on the right. It shows you didn't just build a CRUD app, but an intelligent one."
+      },
+      {
+        title: "Slide 9: Trust & Anti-Scam Model",
+        talkingPoints: [
+          "Address security: social media tickets are easily faked. Eventfy uses single-use UUID hashes inside QR codes.",
+          "Describe how check-in scanner nodes mark the ticket `is_validated = true` in milliseconds, preventing duplicate entry scams.",
+          "Transactions are secured via webhook verification ensuring zero ticket allocations without confirmed payment."
+        ],
+        juryTips: "Highlight that security and trust are the primary reasons a dedicated platform like Eventfy defeats standard social media groups."
+      },
+      {
+        title: "Slide 10: Horizons & Future Perspectives",
+        talkingPoints: [
+          "Introduce the most creative future addition: the **Social Scraper Engine**.",
+          "Instead of begging organizers to write details, our future backend uses scraping pipelines to automatically pull unstructured events from Facebook/Insta, structure them with AI, and map them instantly onto Eventfy.",
+          "Close with a professional 'Thank You' and declare you are open to their questions."
+        ],
+        juryTips: "End with high confidence. Keep your hands relaxed, look directly at the jury, and prepare your pen to write down their questions."
+      }
+    ];
+
+    // ═══════════════════════════════════════════════════════
+    // INITIALIZATION & DYNAMIC ACTIONS
+    // ═══════════════════════════════════════════════════════
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Load stored customization data
+      loadConfig();
+      // Render initial DB table schema (users default)
+      showTableSchema('users');
+      // Load initial speaker notes
+      loadSpeakerNotes(0);
+      // Run Timer loop
+      startTimerCountdown();
+    });
+
+    // Navigation core logic
+    function updateSlideDisplay() {
+      slides.forEach((slide, index) => {
+        slide.classList.toggle('active', index === currentSlideIndex);
+      });
+      
+      // Update Slide Counter
+      document.getElementById('slideCounter').textContent = `${currentSlideIndex + 1} / ${totalSlides}`;
+      
+      // Update Progress Bar
+      const progressPercent = ((currentSlideIndex) / (totalSlides - 1)) * 100;
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+      // Load correct speaker notes
+      loadSpeakerNotes(currentSlideIndex);
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < totalSlides - 1) {
+        currentSlideIndex++;
+        updateSlideDisplay();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        updateSlideDisplay();
+      }
+    }
+
+    // Keyboard and Gestures
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'n') {
+        togglePresenterMode();
+      } else if (e.key.toLowerCase() === 't') {
+        toggleTheme();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════
+    // THEME SWITCHING
+    // ═══════════════════════════════════════════════════════
+    function toggleTheme() {
+      const body = document.body;
+      body.classList.toggle('light-theme');
+      const isLight = body.classList.contains('light-theme');
+      
+      // Update icon
+      const themeIcon = document.getElementById('themeIcon');
+      if (isLight) {
+        themeIcon.setAttribute('data-lucide', 'moon');
+      } else {
+        themeIcon.setAttribute('data-lucide', 'sun');
+      }
+      lucide.createIcons();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // TIMER UTILITIES
+    // ═══════════════════════════════════════════════════════
+    function startTimerCountdown() {
+      timerInterval = setInterval(() => {
+        if (isTimerRunning && timeRemaining > 0) {
+          timeRemaining--;
+          updateTimerDisplay();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = timeRemaining % 60;
+      const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      
+      const display = document.getElementById('timerDisplay');
+      display.textContent = formattedTime;
+
+      // Color warnings
+      if (timeRemaining < 120) { // Less than 2 mins left
+        display.classList.add('warning');
+      } else {
+        display.classList.remove('warning');
+      }
+    }
+
+    function toggleTimer() {
+      isTimerRunning = !isTimerRunning;
+      const icon = document.getElementById('timerPlayIcon');
+      if (isTimerRunning) {
+        icon.setAttribute('data-lucide', 'pause');
+      } else {
+        icon.setAttribute('data-lucide', 'play');
+      }
+      lucide.createIcons();
+    }
+
+    function resetTimer() {
+      timeRemaining = 720; // reset to 12 mins
+      updateTimerDisplay();
+      if (isTimerRunning) toggleTimer();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // PRESENTER NOTES
+    // ═══════════════════════════════════════════════════════
+    function togglePresenterMode() {
+      const drawer = document.getElementById('presenterDrawer');
+      drawer.classList.toggle('open');
+    }
+
+    function loadSpeakerNotes(slideIdx) {
+      const notes = speakerNotes[slideIdx];
+      const container = document.getElementById('presenterNotesBody');
+      
+      if (!notes) return;
+
+      let listItemsHtml = notes.talkingPoints.map(point => `<li>${point}</li>`).join('');
+      
+      container.innerHTML = `
+        <div class="notes-card">
+          <h4><i data-lucide="mic" style="width: 14px; height: 14px;"></i> Active Slide Focus</h4>
+          <p style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.75rem;">${notes.title}</p>
+        </div>
+        
+        <div class="notes-card">
+          <h4><i data-lucide="message-square" style="width: 14px; height: 14px;"></i> Presenter Script Talking Points</h4>
+          <ul class="notes-list">
+            ${listItemsHtml}
+          </ul>
+        </div>
+        
+        <div class="notes-card jury-warning">
+          <h4 style="color: var(--secondary);"><i data-lucide="help-circle" style="width: 14px; height: 14px;"></i> Anticipated Jury Question & Defense Tip</h4>
+          <p>${notes.juryTips}</p>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // INTERACTIVE DATABASE schema VIEWER
+    // ═══════════════════════════════════════════════════════
+    function showTableSchema(tableName) {
+      // Toggle button states in sidebar
+      const buttons = document.querySelectorAll('.db-table-btn');
+      buttons.forEach(btn => {
+        const nameAttr = btn.textContent.trim().split(' ')[0];
+        btn.classList.toggle('active', nameAttr === tableName);
+      });
+
+      const schema = schemaData[tableName];
+      const viewer = document.getElementById('dbViewer');
+      
+      if (!schema) return;
+
+      let fieldsHtml = schema.fields.map(f => {
+        let keyLabel = '';
+        if (f.key === 'PK') keyLabel = '<span class="key-pk">[PK]</span>';
+        else if (f.key.startsWith('FK')) keyLabel = `<span class="key-fk" title="${f.key}">[FK]</span>`;
+        else if (f.key === 'UNIQUE') keyLabel = '<span class="key-pk" style="color: var(--accent);">[UQ]</span>';
+        else if (f.key === 'INDEX') keyLabel = '<span class="key-fk" style="color: #a78bfa;">[IX]</span>';
+
+        return `
+          <div class="db-cell" style="font-weight:700; color:var(--text-main);">${f.name} ${keyLabel}</div>
+          <div class="db-cell type-col">${f.type}</div>
+          <div class="db-cell" style="color: var(--text-muted);">${f.notes}</div>
+        `;
+      }).join('');
+
+      viewer.innerHTML = `
+        <div class="db-header-row">
+          <div class="db-table-title">relation: ${tableName}</div>
+          <div class="badge badge-accent" style="margin-bottom:0;"><i data-lucide="key" style="width:12px;height:12px;"></i> Optimized Indexing Enabled</div>
+        </div>
+        <p class="db-table-desc">${schema.desc}</p>
+        
+        <div class="db-fields-grid">
+          <div class="db-grid-header">Column Name</div>
+          <div class="db-grid-header">Data Type</div>
+          <div class="db-grid-header">Schema Metadata / Constraints</div>
+          ${fieldsHtml}
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // CUSTOMIZER CONFIGURATION DIALOG
+    // ═══════════════════════════════════════════════════════
+    function openConfig() {
+      document.getElementById('configDrawer').classList.add('open');
+      document.getElementById('drawerOverlay').classList.add('open');
+    }
+
+    function closeConfig() {
+      document.getElementById('configDrawer').classList.remove('open');
+      document.getElementById('drawerOverlay').classList.remove('open');
+      saveConfig();
+    }
+
+    function saveConfig() {
+      const presenter = document.getElementById('inputPresenter').value;
+      const supervisor = document.getElementById('inputSupervisor').value;
+      const institution = document.getElementById('inputInstitution').value;
+
+      localStorage.setItem('eventfy_presenter', presenter);
+      localStorage.setItem('eventfy_supervisor', supervisor);
+      localStorage.setItem('eventfy_institution', institution);
+
+      applyConfig(presenter, supervisor, institution);
+    }
+
+    function loadConfig() {
+      const presenter = localStorage.getItem('eventfy_presenter') || 'Nour Seddiki & Team';
+      const supervisor = localStorage.getItem('eventfy_supervisor') || 'Dr. A. Rahmouni';
+      const institution = localStorage.getItem('eventfy_institution') || 'ESI - National School of Computer Science';
+
+      document.getElementById('inputPresenter').value = presenter;
+      document.getElementById('inputSupervisor').value = supervisor;
+      document.getElementById('inputInstitution').value = institution;
+
+      applyConfig(presenter, supervisor, institution);
+    }
+
+    function applyConfig(presenter, supervisor, institution) {
+      document.getElementById('displayPresenter').textContent = presenter;
+      document.getElementById('displaySupervisor').textContent = supervisor;
+      document.getElementById('displayInstitution').textContent = institution;
+    }
+
+    // Fullscreen helper
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  </script>
+</body>
+</html>

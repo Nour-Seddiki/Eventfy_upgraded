@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eventfy - Investor Pitch Deck</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* UI/UX Pro Max - High Level Pitch Deck */
+    :root {
+      /* Brand Colors */
+      --brand-primary: #7c3aed; /* Vibrant Purple */
+      --brand-secondary: #f97316; /* Vibrant Orange */
+      --brand-dark: #4c1d95;
+      
+      /* Surface & Typography Colors */
+      --bg-base: #0f172a; /* Deep Space Slate */
+      --bg-surface: rgba(30, 41, 59, 0.7); /* Translucent Slate */
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      
+      /* Glow & Gradients */
+      --glow-purple: rgba(124, 58, 237, 0.4);
+      --glow-orange: rgba(249, 115, 22, 0.4);
+      
+      /* Layout */
+      --max-w: 1200px;
+      --slide-padding: 6rem;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    p {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Background Ambient Lights */
+    .ambient-light-1 {
+      position: fixed;
+      top: -20%;
+      right: -10%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, var(--glow-purple) 0%, transparent 60%);
+      border-radius: 50%;
+      z-index: -1;
+      filter: blur(100px);
+      pointer-events: none;
+    }
+    
+    .ambient-light-2 {
+      position: fixed;
+      bottom: -20%;
+      left: -10%;
+      width: 50vw;
+      height: 50vw;
+      background: radial-gradient(circle, var(--glow-orange) 0%, transparent 60%);
+      border-radius: 50%;
+      z-index: -1;
+      filter: blur(100px);
+      pointer-events: none;
+    }
+
+    /* Fixed Navigation */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      color: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-container {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .progress-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border-subtle);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .progress-dot:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .progress-dot.active {
+      background: white;
+      transform: scale(1.2);
+      box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+
+    /* Slides Container */
+    .deck-container {
+      height: 100vh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    .slide {
+      scroll-snap-align: start;
+      min-height: 100vh;
+      width: 100vw;
+      display: flex;
+      align-items: center;
+      padding: 6rem 2rem 2rem; 
+      position: relative;
+    }
+
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Typography & Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1.25rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--brand-secondary);
+    }
+
+    .title-mega {
+      font-size: clamp(3.5rem, 6vw, 5.5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+    }
+
+    .title-lg {
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+
+    .text-gradient {
+      background: linear-gradient(135deg, #a78bfa 0%, #fb923c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle-large {
+      font-size: clamp(1.25rem, 2vw, 1.5rem);
+      color: var(--text-muted);
+      max-width: 650px;
+      margin-bottom: 2.5rem;
+      line-height: 1.5;
+    }
+
+    /* Layout Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+    @media (min-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; gap: 5rem; }
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    @media (min-width: 768px) {
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    /* Glassmorphic Cards */
+    .card {
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s ease, border-color 0.3s ease;
+      height: 100%;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .card-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
+    }
+    
+    .card-icon svg {
+      width: 32px;
+      height: 32px;
+      color: white;
+    }
+
+    .card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-number {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: white;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
+
+    /* Image Presentations */
+    .presentation-image {
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+    }
+    
+    .presentation-image img {
+      width: 100%;
+      display: block;
+    }
+
+    .mockup-mobile {
+      max-width: 320px;
+      margin: 0 auto;
+      border-radius: 40px;
+      border: 8px solid #1e293b;
+    }
+
+    /* Feature Lists */
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+    }
+
+    .feature-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(124, 58, 237, 0.2);
+      color: #a78bfa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .feature-item strong {
+      display: block;
+      color: white;
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1rem 2.5rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 1.125rem;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      color: white;
+      box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.5);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 15px 35px -5px rgba(249, 115, 22, 0.6);
+    }
+
+    /* Animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px) scale(0.98);
+      transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide.is-visible .reveal {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .d-1 { transition-delay: 0.1s; }
+    .d-2 { transition-delay: 0.2s; }
+    .d-3 { transition-delay: 0.3s; }
+    .d-4 { transition-delay: 0.4s; }
+
+  </style>
+</head>
+<body>
+
+  <!-- Background Ambience -->
+  <div class="ambient-light-1"></div>
+  <div class="ambient-light-2"></div>
+
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon"><i data-lucide="ticket"></i></div>
+      Eventfy
+    </div>
+    <div class="progress-container" id="progressDots"></div>
+  </header>
+
+  <div class="deck-container" id="deckContainer">
+
+    <!-- Slide 1: Title & Vision -->
+    <section class="slide" id="slide-1">
+      <div class="container grid-2">
+        <div class="reveal">
+          <span class="badge">Investor Pitch 2026</span>
+          <h1 class="title-mega">
+            The OS for <br>
+            <span class="text-gradient">Live Experiences</span>
+          </h1>
+          <p class="subtitle-large" style="color: #cbd5e1;">
+            We are building a unified ticketing and discovery platform to bridge the gap between extraordinary events and the people who love them.
+          </p>
+          <button class="btn btn-primary" onclick="document.getElementById('slide-2').scrollIntoView()">
+            View The Pitch
+            <i data-lucide="arrow-right"></i>
+          </button>
+        </div>
+        <div class="reveal d-2">
+          <div class="presentation-image" style="border-radius: 32px; border: 4px solid rgba(255,255,255,0.05);">
+            <img src="img/hero.png" alt="Concert Crowd" style="aspect-ratio: 4/5; object-fit: cover;">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 2: The Problem -->
+    <section class="slide" id="slide-2">
+      <div class="container">
+        <div class="reveal" style="text-align: center; max-width: 800px; margin: 0 auto 4rem;">
+          <span class="badge" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">The Problem</span>
+          <h2 class="title-lg">The event industry is broken.</h2>
+          <p style="font-size: 1.25rem;">Current platforms act as simple checkout carts with outdated UX, punishing fees, and zero post-purchase engagement.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card reveal d-1">
+            <div class="card-icon" style="color: #ef4444;"><i data-lucide="search-x"></i></div>
+            <h3>Zero Discovery</h3>
+            <p>Attendees can't find local indie events. Current apps rely solely on creators bringing their own traffic, acting only as payment gateways.</p>
+          </div>
+          <div class="card reveal d-2">
+            <div class="card-icon" style="color: #f59e0b;"><i data-lucide="calculator"></i></div>
+            <h3>Predatory Fees</h3>
+            <p>Incumbents charge up to 15% in opaque "service fees", hurting the consumer's wallet and decreasing total event conversion rates.</p>
+          </div>
+          <div class="card reveal d-3">
+            <div class="card-icon" style="color: #64748b;"><i data-lucide="bar-chart-horizontal"></i></div>
+            <h3>Blind Organizers</h3>
+            <p>Creators lack real-time data, have delayed payouts (waiting weeks post-event), and use clunky software from the 2010s.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 3: Solution - Attendee -->
+    <section class="slide" id="slide-3">
+      <div class="container grid-2">
+        <div class="reveal d-2" style="order: 2;">
+          <div class="presentation-image mockup-mobile">
+            <img src="img/mobile.png" alt="Eventfy Mobile UI">
+          </div>
+        </div>
+        <div class="reveal" style="order: 1;">
+          <span class="badge" style="color: #a78bfa; border-color: rgba(167, 139, 250, 0.3);">The Solution: Consumers</span>
+          <h2 class="title-lg">A consumer app <br>they actually love.</h2>
+          <p class="subtitle-large">We replaced static directories with dynamic map-based discovery and 1-click purchasing.</p>
+          
+          <ul class="feature-list">
+            <li class="feature-item">
+              <div class="feature-icon-wrap"><i data-lucide="map-pin"></i></div>
+              <div>
+                <strong>Map-First Discovery</strong>
+                <p>Visual exploration of local happenings. Find underground gigs, workshops, and massive festivals all on one sleek map.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-icon-wrap"><i data-lucide="zap"></i></div>
+              <div>
+                <strong>3-Second Checkout</strong>
+                <p>Integrated Apple Pay & Google Pay. No accounts required to buy, drastically improving conversion rates for organizers.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-icon-wrap"><i data-lucide="qr-code"></i></div>
+              <div>
+                <strong>Digital Wallet</strong>
+                <p>Offline-ready tickets with auto-brightening QR codes. Built-in sharing to easily send tickets to friends.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 4: Solution - Organizer -->
+    <section class="slide" id="slide-4">
+      <div class="container grid-2">
+        <div class="reveal">
+          <span class="badge" style="color: #fb923c; border-color: rgba(251, 146, 60, 0.3);">The Solution: Organizers</span>
+          <h2 class="title-lg">Command central <br>for creators.</h2>
+          <p class="subtitle-large">A beautiful, data-rich dashboard that provides absolute control over your event's success.</p>
+          
+          <ul class="feature-list">
+            <li class="feature-item">
+              <div class="feature-icon-wrap" style="background: rgba(249, 115, 22, 0.2); color: #fb923c;"><i data-lucide="activity"></i></div>
+              <div>
+                <strong>Real-Time Analytics</strong>
+                <p>Live graphs for ticket velocity, revenue, page views, and demographic insights to optimize marketing spend.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-icon-wrap" style="background: rgba(249, 115, 22, 0.2); color: #fb923c;"><i data-lucide="banknote"></i></div>
+              <div>
+                <strong>Instant Payouts</strong>
+                <p>Funds are routed directly to the organizer's bank via Stripe Connect the moment a ticket is sold. Zero holding periods.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="reveal d-2">
+          <div class="presentation-image">
+            <img src="img/dashboard.png" alt="Eventfy Organizer Dashboard">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 5: Market Opportunity -->
+    <section class="slide" id="slide-5">
+      <div class="container">
+        <div class="reveal" style="text-align: center; margin-bottom: 4rem;">
+          <span class="badge">Market Opportunity</span>
+          <h2 class="title-lg">A massive, fragmented market.</h2>
+        </div>
+
+        <div class="grid-3">
+          <div class="card reveal d-1" style="text-align: center;">
+            <div class="stat-number">$85B+</div>
+            <h3 style="color: var(--brand-primary);">TAM</h3>
+            <p>Global Event Ticketing Market. Growing at 7% CAGR as the experience economy booms.</p>
+          </div>
+          <div class="card reveal d-2" style="text-align: center; border-color: var(--brand-primary); transform: scale(1.05);">
+            <div class="stat-number">$18B</div>
+            <h3 style="color: var(--brand-secondary);">SAM</h3>
+            <p>Independent Creators & Mid-Market Venues actively seeking better, modern software.</p>
+          </div>
+          <div class="card reveal d-3" style="text-align: center;">
+            <div class="stat-number">$1.2B</div>
+            <h3 style="color: #a78bfa;">SOM</h3>
+            <p>Our initial 3-year target capturing specific verticals: Tech conferences, indie music, and workshops.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 6: Business Model & Competition -->
+    <section class="slide" id="slide-6">
+      <div class="container grid-2">
+        <div class="reveal">
+          <span class="badge">Business Model</span>
+          <h2 class="title-lg">Highly scalable <br>revenue streams.</h2>
+          
+          <div style="margin-top: 2rem;">
+            <div class="card" style="margin-bottom: 1.5rem; background: rgba(255,255,255,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h3 style="margin:0;">Transactional</h3>
+                <span style="font-size: 1.5rem; font-weight: 800; color: white;">2.5% + $0.99</span>
+              </div>
+              <p>Per paid ticket. Paid by the attendee. Free events are 100% free forever.</p>
+            </div>
+
+            <div class="card" style="background: rgba(255,255,255,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h3 style="margin:0;">Eventfy PRO (SaaS)</h3>
+                <span style="font-size: 1.5rem; font-weight: 800; color: var(--brand-secondary);">$49/mo</span>
+              </div>
+              <p>Recurring revenue for premium analytics, API access, team accounts, and custom branding.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="reveal d-2">
+          <span class="badge">Why We Win</span>
+          <h2 class="title-lg">The Competitive Edge</h2>
+          <ul class="feature-list" style="margin-top: 2rem;">
+            <li class="feature-item">
+              <div class="feature-icon-wrap" style="background: rgba(16, 185, 129, 0.2); color: #34d399;"><i data-lucide="check-circle"></i></div>
+              <div>
+                <strong>Consumer-First Discovery</strong>
+                <p>We are a destination app, not just a checkout link. We generate organic demand for organizers.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <div class="feature-icon-wrap" style="background: rgba(16, 185, 129, 0.2); color: #34d399;"><i data-lucide="check-circle"></i></div>
+              <div>
+                <strong>Instant Liquidity</strong>
+                <p>Competitors hold funds until 5 days *after* the event. We pay out instantly, solving cash flow for creators.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 7: Traction & The Ask -->
+    <section class="slide" id="slide-7">
+      <div class="container">
+        <div class="card reveal" style="padding: 4rem; text-align: center; border: 1px solid var(--brand-primary); background: linear-gradient(180deg, rgba(30,41,59,0.9) 0%, rgba(124,58,237,0.1) 100%);">
+          <span class="badge" style="background: var(--brand-primary); color: white; border: none;">The Ask</span>
+          <h2 class="title-mega" style="margin-bottom: 1rem;">Join the revolution.</h2>
+          <p class="subtitle-large" style="margin: 0 auto 3rem;">
+            We have successfully launched our MVP, integrated robust Stripe payments, and are onboarding our first 100 organizers. We are raising our Seed round to scale engineering and launch our native iOS/Android apps.
+          </p>
+          
+          <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">
+            <a href="mailto:invest@eventfy.com" class="btn btn-primary" style="padding: 1.25rem 3rem;">
+              Contact Founders
+              <i data-lucide="mail"></i>
+            </a>
+            <a href="#" class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">
+              View Data Room
+              <i data-lucide="external-link"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const deckContainer = document.getElementById('deckContainer');
+    const slides = document.querySelectorAll('.slide');
+    const dotsContainer = document.getElementById('progressDots');
+    
+    // Create dots navigation
+    slides.forEach((slide, index) => {
+      const dot = document.createElement('div');
+      dot.className = 'progress-dot';
+      if (index === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => {
+        slide.scrollIntoView({ behavior: 'smooth' });
+      });
+      dotsContainer.appendChild(dot);
+    });
+
+    const dots = document.querySelectorAll('.progress-dot');
+
+    // Intersection Observer for scroll animations
+    const observerOptions = {
+      root: deckContainer,
+      threshold: 0.4
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          
+          const slideIndex = Array.from(slides).indexOf(entry.target);
+          dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === slideIndex);
+          });
+        }
+      });
+    }, observerOptions);
+
+    slides.forEach(slide => observer.observe(slide));
+
+    // Initial state
+    setTimeout(() => {
+      slides[0].classList.add('is-visible');
+    }, 100);
+  </script>
+</body>
+</html>

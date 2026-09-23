@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eventfy | Organizer Dashboard</title>
+  <meta name="description" content="Manage your events and track registrations on the Eventfy Organizer Dashboard." />
+  <!-- Shared design system -->
+  <!-- Page-specific styles -->
+  <link rel="stylesheet" href="organizer-dashboard.css" />
+    <link rel="stylesheet" href="qr-scanner.css" />
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../common.css?v=1012">
+  <link rel="stylesheet" href="../console.css?v=1">
+</head>
+
+<body>
+  <div id="console-bar"></div>
+
+  <main>
+    <div class="page-container">
+      <div class="org-dash-header">
+        <div>
+          <h1 class="page-title">Organizer Dashboard</h1>
+          <p class="page-subtitle">Manage your events and track registrations</p>
+        </div>
+        <button class="btn-create-event" id="createEventBtn">+ Create Event</button>
+      </div>
+
+      <!-- Overarching Stats Summary -->
+      <div class="dash-summary-container">
+        <div class="dash-summary-card">
+          <span class="dash-summary-label">Total Revenue</span>
+          <span class="dash-summary-value" id="totalRevenueDisplay">$0.00</span>
+        </div>
+        <div class="dash-summary-card">
+          <span class="dash-summary-label">TOTAL TICKETS SOLD</span>
+          <span class="dash-summary-value" id="totalTicketsSoldDisplay">0</span>
+        </div>
+      </div>
+
+      <h2 class="my-events-heading">
+        <svg class="icon-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="3" />
+          <path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
+        My Events
+      </h2>
+
+      <div class="org-events-list" id="orgEventsList" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <!-- Quick Manage Modal -->
+  <div class="modal-overlay" id="quickManageModal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Quick Manage</h3>
+        <button class="modal-close-btn" id="closeQuickManageBtn" aria-label="Close modal">✕</button>
+      </div>
+      <form id="quickManageForm">
+        <input type="hidden" id="quickManageEventId" />
+        
+        <div class="form-group">
+          <label for="qmDate">Deadline / Event Date</label>
+          <input type="datetime-local" id="qmDate" name="qmDate" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="qmCapacity">Available Seats (Capacity)</label>
+          <input type="number" id="qmCapacity" name="qmCapacity" min="1" required />
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="cancelQuickManageBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="saveQuickManageBtn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../config.js?v=1012"></script>
+  <script src="../api.js?v=1014"></script>
+  <script src="../currencyUtils.js"></script>
+  <script>
+    // Auth guard 1: must be logged in
+    if (!isLoggedIn()) {
+      window.location.href = '../index.html#/signin';
+    }
+    // Auth guard 2: must be an organizer (or admin)
+    (function() {
+      const user = getCachedUser();
+      const role = (user && user.role) ? user.role.toLowerCase() : '';
+      if (role && role !== 'organizer' && role !== 'admin') {
+        // Attendee trying to access org dashboard → redirect to their profile
+        window.location.href = '../index.html#/profile';
+      }
+      // If no cached role yet, the organizer-dashboard.js will verify after API call
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="organizer-dashboard.js?v=1002"></script>
+  <script src="qr-scanner.js?v=1002"></script>
+  <script src="../console.js?v=1"></script>
+</body>
+
+</html>

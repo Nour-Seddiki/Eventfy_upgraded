@@ -1,0 +1,116 @@
+# Eventfy Frontend — Netlify Configuration
+#
+# /index.html is the Eventfy v4 app (hash routes: /#/discover, /#/tickets, …).
+# The organizer and admin consoles are separate pages under /org-dashboard,
+# /new Event and /Admin.
+
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/admin"
+  to = "/Admin/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/organizer"
+  to = "/org-dashboard/index.html"
+  status = 200
+
+# Pages from the previous UI → the v4 app
+[[redirects]]
+  from = "/Home/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/Events/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/About/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/login/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/signup/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/dashboard/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/saved-events/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/setting/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/org-profile/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/notifications/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/map/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/payment/*"
+  to = "/"
+  status = 301
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=()"
+
+# Cache static assets. CSS is linked with ?v= cache-busters, so it can be immutable.
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# The v4 app is ES modules imported without version strings: always revalidate
+# so a deploy never mixes old and new modules.
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

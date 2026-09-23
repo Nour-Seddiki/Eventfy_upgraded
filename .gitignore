@@ -1,0 +1,87 @@
+# ═══════════════════════════════════════
+# Eventfy-Pro .gitignore
+# ═══════════════════════════════════════
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# ── Database ──
+*.db
+*.db-*
+*.db-journal
+*.sqlite3
+
+# ── Environment / Secrets ──
+.env
+.env.*
+!.env.example
+
+# ── Backend uploads ──
+uploads/
+backend/uploads/
+
+# ── Node / Frontend deps ──
+node_modules/
+package-lock.json
+yarn.lock
+
+# ── IDE / Editor ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Agent / AI config ──
+.agent/
+.agents/
+.claude/
+brain/
+skills/
+skills-lock.json
+.impeccable.md
+
+# ── Chrome DevTools debug ──
+.chrome-debug/
+.chrome-debug2/
+
+# ── Netlify / Deploy artifacts ──
+.netlify/
+_clean_deploy/
+_netlify_deploy/
+
+# ── Stripe CLI ──
+stripe.zip
+stripe-cli/
+
+# ── Temporary / One-off scripts ──
+add_aria_hidden.py
+audit_pages.py
+check_dupes.py
+clean_old_navbars.py
+fix_all_pages.py
+fix_drawer_classes.py
+update_navbars.py
+mock_data.py
+e2e_test_results.txt
+
+# ── Legacy / Unused files ──
+old_home.html
+eventfy-navbar-snippet.html
+frontend_common.css
+frontend_home.html
+
+# ── Logs ──
+*.log
+npm-debug.log*

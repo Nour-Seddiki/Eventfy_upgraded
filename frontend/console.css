@@ -1,0 +1,40 @@
+/* Header for the organizer & admin consoles, in the Eventfy v4 style. */
+.console-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 64px; z-index: 700;
+  background: rgba(17, 14, 23, .94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+  font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif;
+}
+body.has-console-bar { padding-top: 64px; }
+.console-row { height: 100%; max-width: 1280px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 16px; }
+.console-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; flex-shrink: 0; }
+.console-logo:hover { color: #fff; }
+.console-mark { width: 34px; height: 34px; border-radius: 10px; background: #f3ebfe; display: grid; place-items: center; }
+.console-word { font-weight: 800; font-size: 18px; letter-spacing: -.4px; }
+.console-tag {
+  padding: 2px 8px; border-radius: 99px; background: rgba(167, 139, 250, .18); color: #c4b5fd;
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px;
+}
+.console-nav { display: flex; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+.console-nav::-webkit-scrollbar { display: none; }
+.console-link {
+  padding: 8px 14px; border-radius: 99px; font-size: 14px; font-weight: 700; color: #a59cb4;
+  text-decoration: none; white-space: nowrap; transition: color .15s, background .15s;
+}
+.console-link:hover { color: #fff; }
+.console-link.active { color: #fff; background: rgba(255, 255, 255, .1); }
+.console-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.console-back {
+  height: 38px; padding: 0 14px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, .16); color: #fff;
+  font-size: 13px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap;
+}
+.console-back:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.console-out {
+  height: 38px; padding: 0 14px; border-radius: 99px; border: 0; background: transparent; color: #fca5a5;
+  font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+}
+.console-out:hover { background: rgba(220, 38, 38, .15); }
+@media (max-width: 720px) {
+  .console-word, .console-tag, .console-back span { display: none; }
+  .console-row { gap: 10px; padding: 0 12px; }
+}

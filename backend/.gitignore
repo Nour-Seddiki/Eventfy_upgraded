@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+.venv/
+env/
+venv_fresh_empty_20260305/
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Database
+*.db
+*.db-*
+*.sqlite3
+
+# Uploads (user content)
+uploads/
+
+# Stripe CLI
+stripe-cli/
+stripe.zip
+
+# IDE
+.vscode/
+.idea/
+
+# Temp scripts
+migrate_registration.py
+scripts/verify_currency.py
+
+# Misc
+*.png
+test_db.py

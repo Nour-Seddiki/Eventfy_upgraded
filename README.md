@@ -8,6 +8,8 @@ This repository is the upgraded version of [Nour-Seddiki/Eventfy](https://github
 a new frontend (Eventfy v4), Algerian card payments through Chargily Pay, an IT-only catalogue,
 admin-approved organizers and a round of security fixes. See [What changed](#what-changed-in-this-upgrade).
 
+**Live:** https://eventfy-upgraded.netlify.app · API: https://eventfy-upgraded-api.onrender.com ([docs](https://eventfy-upgraded-api.onrender.com/docs))
+
 ## Features
 
 **Attendees**
@@ -29,7 +31,12 @@ admin-approved organizers and a round of security fixes. See [What changed](#wha
 **Admins**
 - Dashboard with platform analytics
 - Manage users (restrict, ban, delete) and promote attendees who request organizer access
-- Moderate events, payments and reviews
+- Moderate events, payments and reviews (admins don't create events; organizers do)
+
+**Messaging** (`/chat` API)
+- Support chat with the admin team: *Become an organizer*, *Report a problem* or anything else.
+  Admins answer from one inbox and can promote the user from the conversation.
+- Attendee ↔ organizer chat for each event, and organizer announcements to every ticket holder
 
 ## How roles work
 
@@ -119,6 +126,7 @@ All settings live in `backend/.env` (see [`backend/.env.example`](backend/.env.e
 | `CHARGILY_URL` | `https://pay.chargily.net/test/api/v2/` for test mode, `…/api/v2/` for live |
 | `BACKEND_URL` | Public API URL; Chargily sends webhooks to `BACKEND_URL/payment/webhook` |
 | `FRONTEND_URL` | Frontend origin(s), comma-separated; used for CORS and payment redirects |
+| `ADMIN_EMAILS` | Emails that become admins when they sign up or sign in (how a new deployment gets its first admin) |
 
 ## Payments
 
@@ -135,13 +143,37 @@ Chargily has no refund API, so refunds are handled manually.
 
 ## Deployment
 
-- **Render (API):** `backend/Procfile` runs uvicorn. Set the variables above, with `CHARGILY_URL`
-  pointing at the live API when you go live.
-- **Netlify (frontend):** publish the `frontend/` folder. `netlify.toml` redirects pages from the
-  old UI to `/` and sets caching headers.
-- **Google sign-in:** the OAuth client's *Authorized JavaScript origins* must include your
-  frontend URL.
-- **Chargily:** set the webhook URL in the Chargily dashboard, or set `BACKEND_URL`.
+The live deployment runs on free tiers:
+
+| Part | Where | URL |
+|---|---|---|
+| Frontend | Netlify site `eventfy-upgraded` (publishes `frontend/`) | https://eventfy-upgraded.netlify.app |
+| API | Render web service `eventfy-upgraded-api` (root `backend/`, Python 3.11, Frankfurt) | https://eventfy-upgraded-api.onrender.com |
+| Database | Render PostgreSQL 16 `eventfy-upgraded-db` (free, Frankfurt) | internal |
+
+**API on Render:** web service from this repo, root directory `backend`, build
+`pip install -r requirements.txt`, start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+It redeploys on every push that changes `backend/`. Environment: the `DB_*` values of the
+Render database (internal hostname, port 5432), a generated `SECRET_KEY`, `PYTHON_VERSION=3.11.9`,
+`FRONTEND_URL=https://eventfy-upgraded.netlify.app`, `BACKEND_URL` (its own URL) and `ADMIN_EMAILS`.
+Tables are created on first start.
+
+**Frontend on Netlify:** deploy the `frontend/` folder (no build step). `frontend/config.js` points
+production traffic at the Render API, so a new API URL means updating that file.
+
+**First admin:** sign up (or sign in with Google) with an email listed in `ADMIN_EMAILS`; that account
+becomes admin and can then promote organizers.
+
+**Good to know**
+- Render's free web service sleeps after 15 minutes without traffic; the first request then takes
+  about a minute. The free database expires after 30 days (2026-10-23 for the current one) unless
+  it is upgraded.
+- Uploaded images are stored on the API's disk, which Render wipes on each deploy. Set
+  `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` to keep them in Supabase Storage.
+- Payments stay disabled until `CHARGILY_SECRET` is set (test key first). Set Chargily's webhook to
+  `https://eventfy-upgraded-api.onrender.com/payment/webhook`, or rely on `BACKEND_URL`.
+- Ticket emails need `SMTP_*` or `RESEND_API_KEY`.
+- Google sign-in: add the Netlify URL to the OAuth client's *Authorized JavaScript origins*.
 
 ## What changed in this upgrade
 

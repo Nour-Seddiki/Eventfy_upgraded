@@ -2,7 +2,9 @@
 Supabase Storage upload helper.
 
 Uses the Supabase Storage REST API to upload files and return public CDN URLs.
-Requires SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.
+Requires SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables. Without a
+service key (local development) files are saved under ./uploads, which the API
+serves at /uploads — that disk is not persistent on hosts like Render.
 """
 
 import os
@@ -12,6 +14,8 @@ from pathlib import Path
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://lokbyexvugoctnliwmcy.supabase.co")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+LOCAL_UPLOAD_DIR = Path("uploads")  # same directory app.main mounts at /uploads
 
 
 def _headers(content_type: str = "application/octet-stream") -> dict:
@@ -35,10 +39,20 @@ def upload_file(bucket: str, file_bytes: bytes, original_filename: str) -> str:
         Public HTTPS URL for the uploaded file
 
     Raises:
+        ValueError: If the file is too large
         RuntimeError: If the upload fails
     """
+    if len(file_bytes) > MAX_UPLOAD_BYTES:
+        raise ValueError(f"Images must be {MAX_UPLOAD_BYTES // (1024 * 1024)} MB or smaller")
+
     ext = Path(original_filename).suffix.lower() or ".jpg"
     storage_path = f"{uuid4().hex}{ext}"
+
+    if not SUPABASE_SERVICE_KEY:
+        folder = LOCAL_UPLOAD_DIR / bucket
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / storage_path).write_bytes(file_bytes)
+        return f"/uploads/{bucket}/{storage_path}"
 
     # Determine content type
     content_types = {

@@ -46,8 +46,10 @@ async def upload_avatar(
 
     try:
         public_url = supabase_upload("avatars", file_bytes, image.filename or "avatar.jpg")
-    except RuntimeError as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except RuntimeError:
+        raise HTTPException(status_code=502, detail="The image could not be uploaded. Please try again.")
 
     return _svc.update_avatar(user, db, public_url)
 

@@ -37,7 +37,7 @@ function InfoTab() {
     const file = e.target.files && e.target.files[0];
     e.target.value = '';
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) return flash('Choose an image under 2 MB');
+    if (file.size > 5 * 1024 * 1024) return flash('Choose an image under 5 MB');
     try { await uploadAvatar(file); flash('Photo updated'); } catch (err) { flash(err.message); }
   };
   const request = async () => {
@@ -51,7 +51,7 @@ function InfoTab() {
         <${Avatar} profile=${p} cls="big-avatar" />
         <input ref=${fileRef} type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" onChange=${onPhoto} aria-label="Upload photo" />
         <button class="btn" onClick=${() => fileRef.current.click()}>Upload photo</button>
-        <span class="hint" style=${{ fontWeight: 500 }}>JPG or PNG, up to 2 MB</span>
+        <span class="hint" style=${{ fontWeight: 500 }}>JPG, PNG or WebP, up to 5 MB</span>
       </div>
       <div class="two collapse">
         <${Field} label="Email"><input class="input" type="email" value=${p.email} disabled /><//>
@@ -92,7 +92,7 @@ function SecurityTab() {
       await changePassword(cur, next);
       setCur(''); setNext(''); setConf('');
       flash('Password updated');
-    } catch (e) { flash(e.status === 401 ? 'Your current password is incorrect' : e.message); }
+    } catch (e) { flash(e.message); }
     setBusy(false);
   };
   return html`<div class="panel">
@@ -120,7 +120,7 @@ function AccountTab() {
   };
   return html`<div class="panel danger">
     <div><h2 style=${{ color: '#b91c1c' }}>Delete account</h2>
-      <p class="desc">This removes your profile, tickets and reviews for good. Tickets for upcoming events will be cancelled.</p></div>
+      <p class="desc">Your account is closed and you're signed out. Tickets for upcoming events are cancelled so the seats go back to other attendees.</p></div>
     ${!open && html`<div><button class="btn btn-danger" onClick=${() => setOpen(true)}>Delete my account</button></div>`}
     ${open && html`<div style=${{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px', borderRadius: '16px', background: '#fef2f2' }}>
       <${Field} label="Type DELETE to confirm"><input class="input" style=${{ borderColor: '#fecaca' }} placeholder="DELETE" value=${text} onInput=${e => setText(e.target.value)} /><//>

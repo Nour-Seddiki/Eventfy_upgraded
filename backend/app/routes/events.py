@@ -193,8 +193,10 @@ async def upload_event_image(
 
     try:
         public_url = supabase_upload("event-images", file_bytes, image.filename or "image.jpg")
-    except RuntimeError as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except RuntimeError:
+        raise HTTPException(status_code=502, detail="The image could not be uploaded. Please try again.")
 
     return EventService().upload_event_image(user, db, event_id, public_url)
 

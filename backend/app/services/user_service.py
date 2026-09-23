@@ -30,7 +30,8 @@ class userServices:
         user_model = userServices._get_active_user(user, db)
 
         if not verifying_password(data.current_password, user_model.hashed_password):
-            raise HTTPException(status_code=401, detail="invalid password")
+            # 400, not 401: the session is fine, only the typed password is wrong
+            raise HTTPException(status_code=400, detail="Your current password is incorrect")
         user_model.hashed_password = hashing_password(data.new_password)
 
         db.add(user_model)
@@ -149,6 +150,19 @@ class userServices:
 
         if user_model.is_deleted:
             return {"message": "user account already deleted"}
+
+        # Cancel tickets for events that haven't happened yet and give the
+        # seats back; past tickets stay as history.
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        upcoming = (
+            db.query(Ticket, Event)
+            .join(Event, Ticket.event_id == Event.id)
+            .filter(Ticket.user_id == user_model.id, Ticket.status == "active", Event.start_date >= now)
+            .all()
+        )
+        for ticket, event in upcoming:
+            ticket.status = "cancelled"
+            event.available_tickets = (event.available_tickets or 0) + 1
 
         # Soft delete keeps historical data for tickets/events.
         user_model.is_deleted = True

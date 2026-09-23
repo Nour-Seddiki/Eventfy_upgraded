@@ -73,3 +73,13 @@ def test_edits_are_checked_against_stored_dates(db_session):
     assert exc.value.status_code == 422 and "end date" in exc.value.detail
     with pytest.raises(HTTPException):
         EventService().update_event(auth, db_session, eventUpdate(price=20), ev.id)
+
+
+@pytest.mark.parametrize("role", ["admin", "attendee"])
+def test_only_organizers_create_events(db_session, role):
+    user = User(username=role, email=f"{role}@example.com", hashed_password="x", role=role)
+    db_session.add(user)
+    db_session.commit()
+    with pytest.raises(HTTPException) as exc:
+        EventService().create_event({"username": role, "user_id": user.id, "user_role": role}, db_session, _req())
+    assert exc.value.status_code == 403

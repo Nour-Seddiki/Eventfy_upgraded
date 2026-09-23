@@ -14,8 +14,8 @@
   var path = decodeURIComponent(window.location.pathname);
 
   var links = [
-    { href: '../org-dashboard/index.html', label: 'Dashboard', match: '/org-dashboard/', roles: ['organizer', 'admin'] },
-    { href: '../new Event/index.html', label: 'New event', match: '/new Event/', roles: ['organizer', 'admin'] },
+    { href: '../org-dashboard/index.html', label: 'Dashboard', match: '/org-dashboard/', roles: ['organizer'] },
+    { href: '../new Event/index.html', label: 'New event', match: '/new Event/', roles: ['organizer'] },
     { href: '../Admin/admin.html', label: 'Admin panel', match: '/Admin/', roles: ['admin'] },
   ].filter(function (l) { return l.roles.indexOf(role) !== -1; });
 

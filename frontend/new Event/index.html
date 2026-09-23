@@ -392,12 +392,17 @@
   <script src="../config.js?v=1012"></script>
   <script src="../api.js?v=1015"></script>
   <script>
-    // Auth guard — redirect if not logged in
+    // Auth guard — only organizers create or edit events here
     if (!isLoggedIn()) {
       window.location.href = '../index.html#/signin';
+    } else {
+      const role = ((getCachedUser() || {}).role || '').toLowerCase();
+      if (role && role !== 'organizer') {
+        window.location.href = role === 'admin' ? '../Admin/admin.html' : '../index.html#/profile';
+      }
     }
   </script>
   <script src="app.js?v=1015"></script>
-  <script src="../console.js?v=1"></script>
+  <script src="../console.js?v=2"></script>
 </body>
 </html>

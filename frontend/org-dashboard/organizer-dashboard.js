@@ -266,9 +266,9 @@
       const profile = await fetchMyProfile();
       setCachedUser(profile);
       const role = (profile.role || '').toLowerCase();
-      if (role && role !== 'organizer' && role !== 'admin') {
-        // Not an organizer — redirect
-        window.location.href = '../index.html#/profile';
+      if (role && role !== 'organizer') {
+        // Organizers only; admins moderate events from the admin panel
+        window.location.href = role === 'admin' ? '../Admin/admin.html' : '../index.html#/profile';
         return;
       }
 

@@ -36,7 +36,7 @@ export function Header() {
             aria-current=${route.name === n.page ? 'page' : undefined} onClick=${() => navigate('/' + n.page)}>
           ${n.label}${authed && n.badge ? html`<span class="nav-badge" style=${{ background: n.badgeBg }}>${n.badge}</span>` : null}
         </button>`)}
-        ${authed && consoleLink && html`<a class="organize-btn" href=${consoleLink.href}>Organize<span class="role-chip">${r}</span></a>`}
+        ${authed && consoleLink && html`<a class="organize-btn" href=${consoleLink.href}>${r === 'admin' ? 'Admin panel' : 'Organize'}<span class="role-chip">${r}</span></a>`}
       </nav>`}
       <button class="search-btn" onClick=${openPalette} aria-label="Search events">
         <${SearchIcon} />
@@ -72,7 +72,6 @@ function AccountMenu() {
     </div>
     ${items.map(([pg, l]) => html`<button class="menu-item" role="menuitem" onClick=${() => navigate('/' + pg)}>${l}</button>`)}
     ${consoleLink && html`<a class="menu-item" role="menuitem" href=${consoleLink.href}>${consoleLink.label}</a>`}
-    ${role() === 'admin' && html`<a class="menu-item" role="menuitem" href=${CONSOLE.organizer.href}>${CONSOLE.organizer.label}</a>`}
     <div class="menu-sep"></div>
     <button class="menu-item danger" role="menuitem" onClick=${() => signOut()}>Log out</button>
   </div>`;
